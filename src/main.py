@@ -1,4 +1,5 @@
 import asyncio
+import os
 import threading
 import time
 from typing import Optional
@@ -34,12 +35,13 @@ class ProgressThread(threading.Thread):
         self.logger = logger
 
     def run(self):
-        progress_counter = self.progress_counter
-        while not progress_counter.have_finished:
-            if progress_counter.have_started:
-                print(f"\r{time.strftime('%H:%M:%S', time.localtime())} {progress_counter.progress_str}", end="")
+        # FIXME: print length changed so that may not cover the last sentence
+        # TODO: use alive_progress module to show progress
+        while not self.progress_counter.have_finished:
+            if self.progress_counter.have_started:
+                print(f"\r{time.strftime('%H:%M:%S', time.localtime())} {self.progress_counter.progress_str}", end="")
             time.sleep(self.interval)
-        log = f"{time.strftime('%H:%M:%S', time.localtime())} {progress_counter.progress_str}"
+        log = f"{time.strftime('%H:%M:%S', time.localtime())} {self.progress_counter.progress_str}"
         print('\r' + log)
         if self.logger is not None:
             self.logger.add_to_log(log)
@@ -48,8 +50,9 @@ class ProgressThread(threading.Thread):
 if __name__ == "__main__":
     def main(bvid, args):
         oid = bilibili_api.bvid2aid(bvid)
+        os.makedirs(args.storage, exist_ok=True)
 
-        logger = Logger(f"storage\\{oid}.log")
+        logger = Logger(f"{args.storage}\\{oid}.log")
 
         # 输出 运行开始信息
         start_time = time.localtime()
