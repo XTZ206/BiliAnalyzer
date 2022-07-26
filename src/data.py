@@ -2,7 +2,8 @@ from typing import List, Tuple, Optional, Literal
 
 
 class User:
-    __slots__ = ["id", "name", "sex", "avatar", "level", "vip", "verify", "sailings"]
+    __slots__ = ["id", "name", "sex", "avatar",
+                 "level", "vip", "verify", "sailings"]
 
     def __init__(self):
         self.id: int = -1
@@ -17,8 +18,12 @@ class User:
     def __hash__(self):
         return hash(self.id)
 
-    def __eq__(self, other: "User"):
-        return self.id == other.id
+    def __eq__(self, other):
+        if isinstance(other, User):
+            return self.id == other.id
+        else:
+            return False
+
 
 class Comment:
     __slots__ = ["id", "send_time", "uid", "message", "emote"]
@@ -33,5 +38,8 @@ class Comment:
     def __hash__(self):
         return hash(self.id)
 
-    def __eq__(self, other: "Comment"):
-        return self.id == other.id
+    def __eq__(self, other):
+        if isinstance(other, Comment):
+            return self.id == other.id
+        else:
+            return False

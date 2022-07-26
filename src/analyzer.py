@@ -1,42 +1,21 @@
 import logging
 from collections import Counter, OrderedDict
-from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Any
 
 import jieba
 
+from constants import *
 from data import Comment, User
 from progress import Progress
 
 jieba.setLogLevel(logging.INFO)
-
-
-class Fields(Enum):
-    ALL = "all"
-    WHOLE = "all"
-    WORDS = "words"
-    EMOTE = "emote"
-    SEX = "sex"
-    GENDER = "sex"
-    LEVEL = "level"
-    VIP = "vip"
-    VERIFY = "verify"
-    SAILINGS = "sailings"
-
-
-SPECIAL_FIELDS = (Fields.ALL, Fields.WHOLE)
-COMMENT_FIELDS = (Fields.WORDS, Fields.EMOTE)
-USER_FIELDS = (Fields.SEX, Fields.LEVEL, Fields.VIP, Fields.VERIFY, Fields.SAILINGS)
-USER_INFO_FIELDS = (Fields.SEX, Fields.LEVEL, Fields.VIP)
-SINGLE_FIELDS = COMMENT_FIELDS + USER_FIELDS
-SORTABLE_FIELDS = (Fields.WORDS, Fields.EMOTE, Fields.SEX, Fields.LEVEL, Fields.VIP, Fields.SAILINGS)
 
 Analysis = Dict
 
 
 class Analyzer(Progress):
     def __init__(self):
-        super().__init__({"running": "Analyzing", "finished": "Analyzed"})
+        super().__init__(ANALYZER_NAME)
         self.comments: List[Comment] = []
         self.users: List[User] = []
         self.has_data = False
@@ -51,7 +30,7 @@ class Analyzer(Progress):
 
         if field in SPECIAL_FIELDS:
             analyses = {}
-            for field in SINGLE_FIELDS:
+            for field in COMMON_FIELDS:
                 analyses[field] = self.analyze(field)[field]
             return analyses
         elif field in COMMENT_FIELDS or field in USER_FIELDS:
@@ -68,7 +47,8 @@ class Analyzer(Progress):
                 else:
                     analysis = self.analyze_emote()
             if field in SORTABLE_FIELDS:
-                analysis = OrderedDict(sorted(analysis.items(), key=lambda t: t[1], reverse=True))
+                analysis = OrderedDict(
+                    sorted(analysis.items(), key=lambda t: t[1], reverse=True))
             return {field: analysis}
 
         else:
@@ -78,49 +58,49 @@ class Analyzer(Progress):
         if field not in USER_INFO_FIELDS:
             raise ValueError
 
-        self.progress_counter.set_progress_total(len(self.users))
-        counter = {}
+        self.counter.set_progress_capacity(len(self.users))
+        counter: Dict[Any, int] = {}
         if field == Fields.SEX:
             for user in self.users:
                 counter.setdefault(user.sex, 0)
                 counter[user.sex] += 1
-                self.progress_counter.inc_progress()
+                self.counter.inc_progress()
         elif field == Fields.LEVEL:
             for user in self.users:
                 counter.setdefault(user.level, 0)
                 counter[user.level] += 1
-                self.progress_counter.inc_progress()
+                self.counter.inc_progress()
         else:
             for user in self.users:
                 counter.setdefault(user.vip, 0)
                 counter[user.vip] += 1
-                self.progress_counter.inc_progress()
+                self.counter.inc_progress()
         return counter
 
     def analyze_verify(self) -> Analysis:
-        self.progress_counter.set_progress_total(len(self.users))
+        self.counter.set_progress_capacity(len(self.users))
         counter: Analysis = {}
         for user in self.users:
             verify_type, verify_desc = user.verify
             if verify_type != "无认证":
                 counter.setdefault(verify_type, {})
                 counter[verify_type][user.name] = verify_desc
-            self.progress_counter.inc_progress()
+            self.counter.inc_progress()
         return counter
 
     def analyze_sailings(self) -> Analysis:
-        self.progress_counter.set_progress_total(len(self.users))
+        self.counter.set_progress_capacity(len(self.users))
         counter: Analysis = {}
         for user in self.users:
             if user.sailings is not None:
                 for sailing in user.sailings:
                     counter.setdefault(sailing, 0)
                     counter[sailing] += 1
-            self.progress_counter.inc_progress()
+            self.counter.inc_progress()
         return counter
 
     def analyze_words(self) -> Analysis:
-        self.progress_counter.set_progress_total(len(self.comments))
+        self.counter.set_progress_capacity(len(self.comments))
         counter: Analysis = Counter()
         for comment in self.comments:
             if comment.emote is not None:
@@ -128,16 +108,16 @@ class Analyzer(Progress):
             else:
                 message = comment.message
             counter += Counter(jieba.cut(message))
-            self.progress_counter.inc_progress()
+            self.counter.inc_progress()
         return counter
 
     def analyze_emote(self) -> Analysis:
-        self.progress_counter.set_progress_total(len(self.comments))
+        self.counter.set_progress_capacity(len(self.comments))
         counter: Analysis = Counter()
         for comment in self.comments:
             if comment.emote is not None:
                 counter += Counter(comment.emote)
-            self.progress_counter.inc_progress()
+            self.counter.inc_progress()
         return counter
 
     @staticmethod

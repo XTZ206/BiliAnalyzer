@@ -3,7 +3,8 @@ import os.path
 import sqlite3
 from typing import List, Tuple, NewType, Dict, Literal, Union
 
-from analyzer import Fields, Analysis
+from analyzer import Analysis
+from constants import *
 from downloader import Comment, User, Page
 from progress import Progress
 
@@ -12,29 +13,29 @@ Storage = NewType("Storage", Tuple)
 
 class DatabaseLoader(Progress):
     def __init__(self, fp: str):
-        super().__init__({"running": "Loading", "finished": "Loaded"})
+        super().__init__(DB_LOADER_NAME)
         self.fp = fp
 
     def load(self, table: Literal["Pages", "Comments", "Users"]) -> Union[List[Page], List[Comment], List[User]]:
         storages: List[Storage] = self._get_storages(table)
         if table == "Pages":
             data: List[Page] = []
-            self.progress_counter.set_progress_total(len(storages))
+            self.counter.set_progress_capacity(len(storages))
             for storage in storages:
                 data.append(self.storage_to_page(storage))
-                self.progress_counter.inc_progress()
+                self.counter.inc_progress()
         elif table == "Comments":
             data: List[Comment] = []
-            self.progress_counter.set_progress_total(len(storages))
+            self.counter.set_progress_capacity(len(storages))
             for storage in storages:
                 data.append(self.storage_to_comment(storage))
-                self.progress_counter.inc_progress()
+                self.counter.inc_progress()
         elif table == "Users":
             data: List[User] = []
-            self.progress_counter.set_progress_total(len(storages))
+            self.counter.set_progress_capacity(len(storages))
             for storage in storages:
                 data.append(self.storage_to_user(storage))
-                self.progress_counter.inc_progress()
+                self.counter.inc_progress()
         else:
             raise ValueError
         return data
@@ -87,7 +88,7 @@ class DatabaseLoader(Progress):
 
 class DatabaseDumper(Progress):
     def __init__(self, fp: str):
-        super().__init__({"running": "Dumping", "finished": "Dumped"})
+        super().__init__(DB_DUMPER_NAME)
         self.fp = fp
 
         # 检查路径 若路径不存在则创造对应文件夹
@@ -124,41 +125,41 @@ class DatabaseDumper(Progress):
              data: Union[List[Comment], List[User], Dict[Fields, Analysis], List[Page]]):
         conn = sqlite3.connect(self.fp)
         if table == "Comments" and isinstance(data, list):
-            self.progress_counter.set_progress_total(len(data))
+            self.counter.set_progress_capacity(len(data))
             for comment in data:
                 conn.execute("REPLACE INTO Comments "
                              "(\"RPID\", \"MESSAGE\", \"EMOTION\", \"UID\", \"TIME\") "
                              "VALUES (?, ?, ?, ?, ?)",
                              self.comment_to_storage(comment))
-                self.progress_counter.inc_progress()
+                self.counter.inc_progress()
 
         elif table == "Users" and isinstance(data, list):
-            self.progress_counter.set_progress_total(len(data))
+            self.counter.set_progress_capacity(len(data))
             for user in data:
                 conn.execute("REPLACE INTO Users "
                              "(\"UID\", \"NAME\", \"SEX\", \"AVATAR\", \"LEVEL\", \"VIP\", "
                              "\"VERIFY_TYPE\", \"VERIFY_DESC\", \"SAILINGS\") "
                              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                              self.user_to_storage(user))
-                self.progress_counter.inc_progress()
+                self.counter.inc_progress()
 
         elif table == "Analyses" and isinstance(data, dict):
-            self.progress_counter.set_progress_total(len(data))
+            self.counter.set_progress_capacity(len(data))
             for field, analysis in data.items():
                 conn.execute("REPLACE INTO Analyses "
                              "(\"FIELD\", \"ANALYSIS\") "
                              "VALUES (?, ?)",
                              self.analysis_to_storage(field, analysis))
-                self.progress_counter.inc_progress()
+                self.counter.inc_progress()
 
         elif table == "Pages" and isinstance(data, list):
-            self.progress_counter.set_progress_total(len(data))
+            self.counter.set_progress_capacity(len(data))
             for page in data:
                 conn.execute("REPLACE INTO Pages "
                              "(\"INDEX\", \"PAGE\") "
                              "VALUES (?, ?)",
                              self.page_to_storage(page))
-                self.progress_counter.inc_progress()
+                self.counter.inc_progress()
 
         else:
             raise ValueError

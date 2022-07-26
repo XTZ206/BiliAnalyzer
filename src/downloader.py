@@ -4,19 +4,22 @@ from typing import Optional, Sequence, List, Tuple, Dict, NewType
 import bilibili_api
 import bilibili_api.comment
 
+from constants import *
 from data import Comment, User
 from progress import Progress
 
 Page = NewType("Page", Dict[str, Dict])
 Reply = NewType("Reply", Dict[str, Dict])
 DUPLICATE_KEYS = ("config", "control", "folder", "hots", "upper", "top")
-class Processor(Progress):
+
+
+class PreProcessor(Progress):
     def __init__(self):
-        super().__init__({"running": "Processing", "finished": "Processed"})
+        super().__init__(PREPROCESSOR_NAME)
 
     def pages_to_data(self, pages: List[Page]):
         replies: List[Reply] = self.pages_to_replies(pages)
-        self.progress_counter.set_progress_total(len(replies))
+        self.counter.set_progress_capacity(len(replies))
 
         comments = []
         users = []
@@ -26,7 +29,7 @@ class Processor(Progress):
             comments.append(comment)
             if user not in users:
                 users.append(user)
-            self.progress_counter.inc_progress()
+            self.counter.inc_progress()
 
         return comments, users
 
@@ -99,7 +102,6 @@ class Processor(Progress):
         else:
             return None
 
-
     def reply_to_comment(self, raw_comment) -> Comment:
         comment: Comment = Comment()
         comment.id = raw_comment["rpid"]
@@ -124,7 +126,7 @@ class Processor(Progress):
 class Downloader(Progress):
     def __init__(self, oid: int, resource_type: bilibili_api.comment.ResourceType, interval: float):
 
-        super().__init__({"running": "Downloading", "finished": "Downloaded"})
+        super().__init__(DOWNLOADER_NAME)
         self.oid = oid
         self.otype = resource_type
         self.interval = interval
@@ -132,11 +134,12 @@ class Downloader(Progress):
         self.pages: List[Page] = []
 
     async def download_pages(self, page_indexes: Optional[Sequence[int]] = None):
+        # TODO: 断点续传
         # 默认下载全部页码评论
         if page_indexes is None:
             page_indexes = list(range(1, (await self.get_page_number()) + 1))
 
-        self.progress_counter.set_progress_total(len(page_indexes))
+        self.counter.set_progress_capacity(len(page_indexes))
         pages: List[Page] = []
         for page_index in page_indexes:
             page: Page = await self._download_page(page_index)
@@ -144,7 +147,7 @@ class Downloader(Progress):
                 if key in page:
                     del page[key]
             pages.append(page)
-            self.progress_counter.inc_progress()
+            self.counter.inc_progress()
             time.sleep(self.interval)
 
         self.pages = pages
@@ -153,5 +156,5 @@ class Downloader(Progress):
         return Page(await bilibili_api.comment.get_comments(oid=self.oid, type_=self.otype, page_index=page_index))
 
     async def get_page_number(self) -> int:
-        raw_data = await bilibili_api.comment.get_comments(oid=self.oid, type_=self.otype, page_index=1)
+        raw_data = await bilibili_api.comment.get_comments(oid=self.oid, type_=self.otype)
         return raw_data["page"]["acount"] // raw_data["page"]["size"]
