@@ -96,3 +96,13 @@ class Configer:
     def check_log_path(self):
         if not os.path.exists(self.config.log_path) and self.config.save_log:
             raise FileNotFoundError("未指定日志路径")
+
+    def __str__(self):
+        return json.dumps({
+            "download_path": self.config.download_path,
+            "save_log": self.config.save_log,
+            "log_path": self.config.log_path,
+            "sessdata": self.credential.sessdata,
+            "bili_jct": self.credential.bili_jct,
+            "buvid3": self.credential.buvid3
+        })
