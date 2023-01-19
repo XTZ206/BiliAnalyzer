@@ -101,25 +101,27 @@ class MainWindow(QMainWindow):
 
         self.logger.info(f"开始下载 下载参数:\n"
                          f"资源ID:{info['oid']}\n"
-                         f"资源类型:{info['otype']}\n"
+                         f"资源类型:{info['otype'].name}\n"
                          f"索引范围:{info['indexes']}")
 
         # TODO: 优化检查结构
         # 检查下载准备是否完成
         try:
+            self.logger.debug(f"当前设置:\n"
+                              f"{str(self.configer)}")
             downloader.check_arguments()
             self.configer.check_download_path()
+            thread = threading.Thread(target=download)
+            thread.start()
 
         except (ValueError, FileNotFoundError) as error:
             call_msg_box(self, str(error))
-            self.logger.error(str(error))
+            self.logger.warning(str(error))
+
         else:
             self.ui.downloadButton.setEnabled(False)
             self.ui.progressBar.setMaximum(downloader.maximum_progress)
             self.ui.progressBar.setVisible(True)
-
-        thread = threading.Thread(target=download)
-        thread.start()
 
     def update_progress_bar(self, value: int):
         self.ui.progressBar.setValue(value)
