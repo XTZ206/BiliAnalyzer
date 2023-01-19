@@ -4,7 +4,7 @@
 ## Install
 ```
 git clone https://github.com/XTZ206/BiliAnalyzer.git
-cd ./bilianalyzer
+cd .\BiliAnalyzer\bilianalyzer
 python main.py
 ```
 
