@@ -6,10 +6,11 @@ import threading
 import time
 from typing import Callable, Literal
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QTableWidgetItem
 from bilibili_api import Credential, ResponseCodeException
 from bilibili_api.comment import CommentResourceType
 
+from analyze import UserAnalyzer
 from download import CommentDownloader
 from convert import convert
 from config import Configer, Config
@@ -39,17 +40,21 @@ class MainWindow(QMainWindow):
             "about": None,
             "tutorial": None
         }
+        self.comment_file: str = ""
 
     def bind(self):
         self.ui.convertButton.clicked.connect(self.handle_convert)
         self.ui.copyButton.clicked.connect(self.handle_copy)
-
         self.ui.downloadButton.clicked.connect(self.handle_download)
         self.ui.helpButton.clicked.connect(self.start_window("tutorial"))
+        self.ui.readButton.clicked.connect(self.handle_read)
+        self.ui.analyzeButton.clicked.connect(self.handle_analyze)
+
         self.ui.actionQuit.triggered.connect(sys.exit)
         self.ui.actionConfig.triggered.connect(self.start_window("config"))
         self.ui.actionAbout.triggered.connect(self.start_window("about"))
         self.ui.actionTutorial.triggered.connect(self.start_window("tutorial"))
+
         ui_signals.updateProgressBar.connect(self.update_progress_bar)
         ui_signals.callDownloadError.connect(self.call_download_error)
 
@@ -100,8 +105,10 @@ class MainWindow(QMainWindow):
                 current_download_path = f"{self.configer.config.download_path}/{info['oid']}"
                 current_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
                 os.makedirs(current_download_path, exist_ok=True)
-                with open(f"{current_download_path}/comments_{current_time}.json", "w", encoding="utf-8") as f:
+                with open(f"{current_download_path}/comments_{current_time}.json".replace("\\", "/"), "w",
+                          encoding="utf-8") as f:
                     json.dump(serializable_comments, f, indent=4, ensure_ascii=False)
+                self.comment_file = f"{current_download_path}/comments_{current_time}.json".replace("\\", "/")
                 self.logger.info(f"保存完毕 保存位置:{current_download_path}"
                                  f"/comments_{current_time}.json".replace("\\", "/"))
 
@@ -144,6 +151,68 @@ class MainWindow(QMainWindow):
             self.ui.downloadButton.setEnabled(False)
             self.ui.progressBar.setMaximum(downloader.maximum_progress)
             self.ui.progressBar.setVisible(True)
+
+    def handle_read(self):
+        filepath, filetype = QFileDialog.getOpenFileName(self)
+        if os.path.exists(filepath):
+            self.comment_file = filepath
+        else:
+            call_msg_box(self, "请选择有效的评论文件")
+
+    def handle_analyze(self):
+        # TODO: 优化加载顺序
+        # TODO: 增加导入本地评论功能
+        # TODO: 增加日志输出
+        self.logger.info(f"读取评论:\n"
+                         f"评论文件路径:\n"
+                         f"{self.comment_file}")
+        analyzer = UserAnalyzer(credential=self.configer.credential)
+        if not os.path.exists(self.comment_file):
+            call_msg_box(self, str("请先指定评论文件"))
+            return
+        analyzer.import_from_comments(self.comment_file)
+        self.logger.info("读取完成开始分析")
+
+        # TODO: 自适应结果列宽度
+        # FIXME: 修复出现次数不显示的问题
+        if self.ui.analyzeComboBox.currentText() == "评论者粉丝牌":
+            fan_medals = analyzer.analyze_users_medal()
+            data = {}
+            for fan_medal in fan_medals:
+                for each_medal in fan_medal.medals:
+                    if each_medal not in data:
+                        data[each_medal] = 1
+                    else:
+                        data[each_medal] += 1
+
+            data = sorted([(item, data[item]) for item in data], key=lambda x: x[1])
+
+            self.ui.analyzeTable.setRowCount(len(data))
+            self.ui.analyzeTable.setColumnCount(2)
+            self.ui.analyzeTable.setHorizontalHeaderLabels(["拥有粉丝牌", "出现次数"])
+            for index, (item, count) in enumerate(data):
+                self.ui.analyzeTable.setItem(index, 0, QTableWidgetItem(item))
+                self.ui.analyzeTable.setItem(index, 1, QTableWidgetItem(count))
+
+        elif self.ui.analyzeComboBox.currentText() == "评论者关注":
+            data = {}
+            for followings in analyzer.analyze_users_following():
+                for following in followings.follwings:
+                    if following not in data:
+                        data[following] = 1
+                    else:
+                        data[following] += 1
+
+            data = sorted([(item, data[item]) for item in data], key=lambda x: x[1])
+
+            self.ui.analyzeTable.setRowCount(len(data))
+            self.ui.analyzeTable.setColumnCount(2)
+            self.ui.analyzeTable.setHorizontalHeaderLabels(["关注中", "出现次数"])
+            for index, (item, count) in enumerate(data):
+                self.ui.analyzeTable.setItem(index + 1, 0, QTableWidgetItem(item))
+                self.ui.analyzeTable.setItem(index + 1, 1, QTableWidgetItem(str(count)))
+            self.ui.analyzeTable.show()
+            self.logger.info("分析完成")
 
     def update_progress_bar(self, value: int):
         self.ui.progressBar.setValue(value)

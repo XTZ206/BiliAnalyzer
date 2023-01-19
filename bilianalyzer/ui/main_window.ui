@@ -43,7 +43,7 @@
        </font>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="convertTab">
        <attribute name="title">
@@ -436,6 +436,88 @@
            </size>
           </property>
          </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="analyzeTab">
+       <attribute name="title">
+        <string>分析</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="Line" name="analyzeLine">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="analyzeTable">
+          <property name="showGrid">
+           <bool>true</bool>
+          </property>
+          <property name="columnCount">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="analyzeLayout">
+          <item>
+           <spacer name="analyzeSpacer_up">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="readButton">
+            <property name="text">
+             <string>读取评论</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="analyzeComboBox">
+            <item>
+             <property name="text">
+              <string>评论者粉丝牌</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>评论者关注</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="analyzeButton">
+            <property name="text">
+             <string>开始分析</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="analyzeSpacer_down">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>

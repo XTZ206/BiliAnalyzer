@@ -17,10 +17,11 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
-    QHBoxLayout, QLabel, QLineEdit, QMainWindow,
-    QMenu, QMenuBar, QProgressBar, QPushButton,
-    QSizePolicy, QSpacerItem, QSpinBox, QStatusBar,
-    QTabWidget, QVBoxLayout, QWidget)
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QMainWindow, QMenu, QMenuBar, QProgressBar,
+    QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
+    QStatusBar, QTabWidget, QTableWidget, QTableWidgetItem,
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -269,6 +270,55 @@ class Ui_MainWindow(object):
         self.verticalLayout.addItem(self.downloadSpacer)
 
         self.tabWidget.addTab(self.downloadTab, "")
+        self.analyzeTab = QWidget()
+        self.analyzeTab.setObjectName(u"analyzeTab")
+        self.horizontalLayout = QHBoxLayout(self.analyzeTab)
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.analyzeLine = QFrame(self.analyzeTab)
+        self.analyzeLine.setObjectName(u"analyzeLine")
+        self.analyzeLine.setFrameShape(QFrame.VLine)
+        self.analyzeLine.setFrameShadow(QFrame.Sunken)
+
+        self.horizontalLayout.addWidget(self.analyzeLine)
+
+        self.analyzeTable = QTableWidget(self.analyzeTab)
+        self.analyzeTable.setObjectName(u"analyzeTable")
+        self.analyzeTable.setShowGrid(True)
+        self.analyzeTable.setColumnCount(0)
+
+        self.horizontalLayout.addWidget(self.analyzeTable)
+
+        self.analyzeLayout = QVBoxLayout()
+        self.analyzeLayout.setObjectName(u"analyzeLayout")
+        self.analyzeSpacer_up = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.analyzeLayout.addItem(self.analyzeSpacer_up)
+
+        self.readButton = QPushButton(self.analyzeTab)
+        self.readButton.setObjectName(u"readButton")
+
+        self.analyzeLayout.addWidget(self.readButton)
+
+        self.analyzeComboBox = QComboBox(self.analyzeTab)
+        self.analyzeComboBox.addItem("")
+        self.analyzeComboBox.addItem("")
+        self.analyzeComboBox.setObjectName(u"analyzeComboBox")
+
+        self.analyzeLayout.addWidget(self.analyzeComboBox)
+
+        self.analyzeButton = QPushButton(self.analyzeTab)
+        self.analyzeButton.setObjectName(u"analyzeButton")
+
+        self.analyzeLayout.addWidget(self.analyzeButton)
+
+        self.analyzeSpacer_down = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.analyzeLayout.addItem(self.analyzeSpacer_down)
+
+
+        self.horizontalLayout.addLayout(self.analyzeLayout)
+
+        self.tabWidget.addTab(self.analyzeTab, "")
 
         self.verticalLayout_2.addWidget(self.tabWidget)
 
@@ -297,7 +347,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -328,6 +378,12 @@ class Ui_MainWindow(object):
         self.downloadButton.setText(QCoreApplication.translate("MainWindow", u"\u4e0b\u8f7d", None))
         self.helpButton.setText(QCoreApplication.translate("MainWindow", u"\u67e5\u770b\u5e2e\u52a9", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.downloadTab), QCoreApplication.translate("MainWindow", u"\u4e0b\u8f7d", None))
+        self.readButton.setText(QCoreApplication.translate("MainWindow", u"\u8bfb\u53d6\u8bc4\u8bba", None))
+        self.analyzeComboBox.setItemText(0, QCoreApplication.translate("MainWindow", u"\u8bc4\u8bba\u8005\u7c89\u4e1d\u724c", None))
+        self.analyzeComboBox.setItemText(1, QCoreApplication.translate("MainWindow", u"\u8bc4\u8bba\u8005\u5173\u6ce8", None))
+
+        self.analyzeButton.setText(QCoreApplication.translate("MainWindow", u"\u5f00\u59cb\u5206\u6790", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.analyzeTab), QCoreApplication.translate("MainWindow", u"\u5206\u6790", None))
         self.fileMenu.setTitle(QCoreApplication.translate("MainWindow", u"\u6587\u4ef6", None))
         self.editMenu.setTitle(QCoreApplication.translate("MainWindow", u"\u7f16\u8f91", None))
         self.helpMenu.setTitle(QCoreApplication.translate("MainWindow", u"\u5e2e\u52a9", None))
