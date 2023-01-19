@@ -10,8 +10,14 @@ venv/
 config.json
 credential
 
-# PyCharm
+# PyCharm & VS Code
 .idea/
+.vscode/
+
+# Build
+build/
+dist/
+/*.spec
 
 # Temporary
 temp/
