@@ -23,6 +23,12 @@ from ui.ui_tutorial import Ui_TutorialWindow
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
+
+        self.configer = Configer()
+        self.logger = logging.getLogger("main")
+        setup_logger(self.logger, self.configer.config.log_path,
+                     save_log=self.configer.config.save_log)
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.bind()
@@ -31,10 +37,7 @@ class MainWindow(QMainWindow):
             "about": None,
             "tutorial": None
         }
-        self.configer = Configer()
-        self.logger = logging.getLogger("main")
-        setup_logger(self.logger, self.configer.config.log_path,
-                     save_log=self.configer.config.save_log)
+
 
     def bind(self):
         self.ui.downloadButton.clicked.connect(self.handle_download)
@@ -151,7 +154,7 @@ class ConfigWindow(QWidget):
         self.ui = Ui_ConfigWindow()
         self.ui.setupUi(self)
         self.main_window = main_window
-        self.configer = Configer()
+        self.configer = self.main_window.configer
         self.bind()
         self.show_config()
         self.show_credential()
@@ -197,13 +200,19 @@ class ConfigWindow(QWidget):
             bili_jct=self.ui.bilijctEntry.text() if self.ui.bilijctEntry.text() != "" else None,
             buvid3=self.ui.buvid3Entry.text() if self.ui.buvid3Entry.text() != "" else None
         )
-        self.configer.dump_to_file()
 
     def confirm_accepted(self):
         self.read_config()
         self.read_credential()
-        self.configer.check_log_path()
+        self.main_window.logger.debug(f"当前设置:\n"
+                                      f"{str(self.configer)}")
+        try:
+            self.configer.check_log_path()
+        except FileNotFoundError as error:
+            call_msg_box(self, str(error))
+
         self.configer.dump_to_file()
+
         self.close()
 
     def confirm_rejected(self):
