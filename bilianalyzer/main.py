@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
                      save_log=self.configer.config.save_log)
 
     def bind(self):
-        self.ui.runButton.clicked.connect(self.run)
+        self.ui.downloadButton.clicked.connect(self.handle_download)
         self.ui.helpButton.clicked.connect(self.start_window("tutorial"))
         self.ui.actionQuit.triggered.connect(sys.exit)
         self.ui.actionConfig.triggered.connect(self.start_window("config"))
@@ -46,7 +46,7 @@ class MainWindow(QMainWindow):
         ui_signals.updateProgressBar.connect(self.update_progress_bar)
         ui_signals.callDownloadError.connect(self.call_download_error)
 
-    def run(self):
+    def handle_download(self):
         def get_info_ui():
             oid = self.ui.idEntry.text()
             otype = {
@@ -89,7 +89,7 @@ class MainWindow(QMainWindow):
                 ui_signals.callDownloadError.emit(Exception("下载前未检查传入参数"))
 
             finally:
-                self.ui.runButton.setEnabled(True)
+                self.ui.downloadButton.setEnabled(True)
 
         info = get_info_ui()
         credential = self.configer.credential
@@ -107,10 +107,10 @@ class MainWindow(QMainWindow):
             self.configer.check_download_path()
 
         except (ValueError, FileNotFoundError) as error:
-            QMessageBox.warning(self, "警告", str(error), QMessageBox.Yes)
+            call_msg_box(self, str(error))
             self.logger.error(str(error))
         else:
-            self.ui.runButton.setEnabled(False)
+            self.ui.downloadButton.setEnabled(False)
             self.ui.progressBar.setMaximum(downloader.maximum_progress)
             self.ui.progressBar.setVisible(True)
 
@@ -121,7 +121,7 @@ class MainWindow(QMainWindow):
         self.ui.progressBar.setValue(value)
 
     def call_download_error(self, error: Exception):
-        QMessageBox.warning(self, "警告", str(error), QMessageBox.Yes)
+        call_msg_box(self, str(error))
 
     def start_window(self, window_name: Literal["config", "about", "tutorial"]) -> Callable[[None], None]:
         def start_wrapper():
@@ -130,7 +130,7 @@ class MainWindow(QMainWindow):
             self.sub_windows[window_name].show()
 
         def coming_soon_wrapper():
-            QMessageBox.information(self, "提示", "即将到来", QMessageBox.Yes)
+            call_msg_box(self, "即将到来", level="information")
 
         if window_name == "config":
             sub_window = ConfigWindow(self)
@@ -228,9 +228,9 @@ class ConfigWindow(QWidget):
             elif filepath == "":
                 pass
         except FileNotFoundError:
-            QMessageBox.warning(self, "警告", "文件不存在", QMessageBox.Yes)
+            call_msg_box(self, "文件不存在")
         except (TypeError | ValueError):
-            QMessageBox.warning(self, "警告", "文件格式错误", QMessageBox.Yes)
+            call_msg_box(self, "文件格式错误")
         self.show_credential()
 
     def export_credential(self):
@@ -261,7 +261,7 @@ class AboutWindow(QWidget):
         self.ui.setupUi(self)
         self.main_window = main_window
         self.bind()
-        self.load_content("about.html")
+        self.load_content("./docs/about.html")
 
     def bind(self):
         pass
@@ -282,7 +282,7 @@ class TutorialWindow(QWidget):
         self.ui.setupUi(self)
         self.main_window = main_window
         self.bind()
-        self.load_content("tutorial.html")
+        self.load_content("./docs/tutorial.html")
 
     def bind(self):
         pass
@@ -294,6 +294,14 @@ class TutorialWindow(QWidget):
             self.ui.textBrowser.setText(content)
         else:
             self.ui.textBrowser.setText("Coming Soon")
+
+
+def call_msg_box(parent: QWidget, content: str,
+                 level: Literal["information", "warning"] = "warning"):
+    if level == "information":
+        QMessageBox.information(parent, "提示", content, QMessageBox.Yes)
+    elif level == "warning":
+        QMessageBox.warning(parent, "警告", content, QMessageBox.Yes)
 
 
 if __name__ == '__main__':
