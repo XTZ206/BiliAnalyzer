@@ -9,6 +9,7 @@ venv/
 # Config files
 config.json
 credential
+bilianalyzer.log
 
 # PyCharm & VS Code
 .idea/
