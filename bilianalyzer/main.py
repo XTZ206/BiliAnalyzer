@@ -1,0 +1,303 @@
+import json
+import logging
+import os
+import sys
+import threading
+import time
+from typing import Callable, Literal
+
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox
+from bilibili_api import Credential, ResponseCodeException
+from bilibili_api.comment import CommentResourceType
+
+from comments import CommentDownloader
+from config import Configer, Config
+from log import setup_logger
+from signals import ui_signals
+from ui.ui_main import Ui_MainWindow
+from ui.ui_config import Ui_ConfigWindow
+from ui.ui_about import Ui_AboutWiindow
+from ui.ui_tutorial import Ui_TutorialWindow
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.bind()
+        self.sub_windows = {
+            "config": None,
+            "about": None,
+            "tutorial": None
+        }
+        self.configer = Configer()
+        self.logger = logging.getLogger("main")
+        setup_logger(self.logger, self.configer.config.log_path,
+                     save_log=self.configer.config.save_log)
+
+    def bind(self):
+        self.ui.runButton.clicked.connect(self.run)
+        self.ui.helpButton.clicked.connect(self.start_window("tutorial"))
+        self.ui.actionQuit.triggered.connect(sys.exit)
+        self.ui.actionConfig.triggered.connect(self.start_window("config"))
+        self.ui.actionAbout.triggered.connect(self.start_window("about"))
+        self.ui.actionTutorial.triggered.connect(self.start_window("tutorial"))
+        ui_signals.updateProgressBar.connect(self.update_progress_bar)
+        ui_signals.callDownloadError.connect(self.call_download_error)
+
+    def run(self):
+        def get_info_ui():
+            oid = self.ui.idEntry.text()
+            otype = {
+                "视频": CommentResourceType.VIDEO,
+                "动态": CommentResourceType.DYNAMIC,
+                "画册": CommentResourceType.DYNAMIC_DRAW
+            }[self.ui.typeBox.currentText()]
+            start = self.ui.startBox.value()
+            end = self.ui.endBox.value()
+            step = self.ui.stepBox.value()
+            indexes = range(start, end, step)
+
+            return {
+                "oid": oid,
+                "otype": otype,
+                "indexes": indexes
+            }
+
+        def download():
+            try:
+                start_time = int(time.time())
+                downloader.download()
+                end_time = int(time.time())
+                self.logger.info(f"下载完毕 用时{end_time - start_time}秒")
+                serializable_comments = downloader.serializable_comments(key="rpid")
+
+                current_download_path = f"{self.configer.config.download_path}/{info['oid']}"
+                current_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+                os.makedirs(current_download_path, exist_ok=True)
+                with open(f"{current_download_path}/comments_{current_time}.json", "w", encoding="utf-8") as f:
+                    json.dump(serializable_comments, f, indent=4, ensure_ascii=False)
+                self.logger.info(f"保存完毕 保存位置:{current_download_path}/comments_{current_time}.json")
+
+            except ResponseCodeException as download_error:
+                self.logger.warning(f"下载失败 失败原因:\n"
+                                    f"{str(download_error)}")
+                ui_signals.callDownloadError.emit(download_error)
+            except AssertionError:
+                self.logger.warning(f"下载失败 失败原因: 下载前未检查传入参数")
+                ui_signals.callDownloadError.emit(Exception("下载前未检查传入参数"))
+
+            finally:
+                self.ui.runButton.setEnabled(True)
+
+        info = get_info_ui()
+        credential = self.configer.credential
+        downloader = CommentDownloader(**info, credential=credential, progress_signal=ui_signals.updateProgressBar)
+
+        self.logger.info(f"开始下载 下载参数:\n"
+                         f"资源ID:{info['oid']}\n"
+                         f"资源类型:{info['otype']}\n"
+                         f"索引范围:{info['indexes']}")
+
+        # TODO: 优化检查结构
+        # 检查下载准备是否完成
+        try:
+            downloader.check_arguments()
+            self.configer.check_download_path()
+
+        except (ValueError, FileNotFoundError) as error:
+            QMessageBox.warning(self, "警告", str(error), QMessageBox.Yes)
+            self.logger.error(str(error))
+        else:
+            self.ui.runButton.setEnabled(False)
+            self.ui.progressBar.setMaximum(downloader.maximum_progress)
+            self.ui.progressBar.setVisible(True)
+
+        thread = threading.Thread(target=download)
+        thread.start()
+
+    def update_progress_bar(self, value: int):
+        self.ui.progressBar.setValue(value)
+
+    def call_download_error(self, error: Exception):
+        QMessageBox.warning(self, "警告", str(error), QMessageBox.Yes)
+
+    def start_window(self, window_name: Literal["config", "about", "tutorial"]) -> Callable[[None], None]:
+        def start_wrapper():
+            if self.sub_windows[window_name] is None:
+                self.sub_windows[window_name] = sub_window
+            self.sub_windows[window_name].show()
+
+        def coming_soon_wrapper():
+            QMessageBox.information(self, "提示", "即将到来", QMessageBox.Yes)
+
+        if window_name == "config":
+            sub_window = ConfigWindow(self)
+            return start_wrapper
+        elif window_name == "about":
+            sub_window = AboutWindow(self)
+            return start_wrapper
+        elif window_name == "tutorial":
+            sub_window = TutorialWindow(self)
+            return start_wrapper
+        else:
+            return coming_soon_wrapper
+
+
+class ConfigWindow(QWidget):
+    def __init__(self, main_window: MainWindow):
+        super(ConfigWindow, self).__init__()
+        self.ui = Ui_ConfigWindow()
+        self.ui.setupUi(self)
+        self.main_window = main_window
+        self.configer = Configer()
+        self.bind()
+        self.show_config()
+        self.show_credential()
+
+    def bind(self):
+        self.ui.confirmButton.accepted.connect(self.confirm_accepted)
+        self.ui.confirmButton.rejected.connect(self.confirm_rejected)
+        self.ui.scanButton.clicked.connect(self.scan_credential)
+        self.ui.importButton.clicked.connect(self.import_credential)
+        self.ui.exportButton.clicked.connect(self.export_credential)
+        self.ui.downloadTool.clicked.connect(self.select_download_path)
+        self.ui.logpathTool.clicked.connect(self.select_log_path)
+
+    def show_config(self):
+        # 在UI上显示设置
+        self.ui.downloadEntry.setText(self.configer.config.download_path)
+        self.ui.logCheckBox.setChecked(self.configer.config.save_log)
+        self.ui.logpathEntry.setText(self.configer.config.log_path)
+        self.ui.logpathEntry.setEnabled(self.ui.logCheckBox.isChecked())
+
+    def show_credential(self):
+        # 在UI上显示凭证
+        credential = self.configer.credential
+        if credential.sessdata is not None:
+            self.ui.sessdataEntry.setText(credential.sessdata)
+        if credential.bili_jct is not None:
+            self.ui.bilijctEntry.setText(credential.bili_jct)
+        if credential.buvid3 is not None:
+            self.ui.buvid3Entry.setText(credential.buvid3)
+
+    def read_config(self):
+        # 从UI上读取设置
+        self.configer.config = Config(
+            download_path=self.ui.downloadEntry.text(),
+            save_log=self.ui.logCheckBox.isChecked(),
+            log_path=self.ui.logpathEntry.text()
+        )
+
+    def read_credential(self):
+        # 从UI上读取凭证
+        self.configer.credential = Credential(
+            sessdata=self.ui.sessdataEntry.text() if self.ui.sessdataEntry.text() != "" else None,
+            bili_jct=self.ui.bilijctEntry.text() if self.ui.bilijctEntry.text() != "" else None,
+            buvid3=self.ui.buvid3Entry.text() if self.ui.buvid3Entry.text() != "" else None
+        )
+        self.configer.dump_to_file()
+
+    def confirm_accepted(self):
+        self.read_config()
+        self.read_credential()
+        self.configer.check_log_path()
+        self.configer.dump_to_file()
+        self.close()
+
+    def confirm_rejected(self):
+        self.close()
+
+    def scan_credential(self):
+        self.configer.scan_credential()
+
+        credential = self.configer.credential
+        if credential.sessdata is not None:
+            self.ui.sessdataEntry.setText(credential.sessdata)
+        if credential.bili_jct is not None:
+            self.ui.bilijctEntry.setText(credential.bili_jct)
+        if credential.buvid3 is not None:
+            self.ui.buvid3Entry.setText(credential.buvid3)
+
+    def import_credential(self):
+        try:
+            filepath, filetype = QFileDialog.getOpenFileName(self)
+            if os.path.exists(filepath):
+                self.configer.import_credential(filepath)
+            elif filepath == "":
+                pass
+        except FileNotFoundError:
+            QMessageBox.warning(self, "警告", "文件不存在", QMessageBox.Yes)
+        except (TypeError | ValueError):
+            QMessageBox.warning(self, "警告", "文件格式错误", QMessageBox.Yes)
+        self.show_credential()
+
+    def export_credential(self):
+        filepath, filetype = QFileDialog.getSaveFileName(self)
+        self.read_credential()
+        if filepath == "":
+            pass
+        else:
+            self.configer.export_credential(filepath)
+
+    def select_download_path(self):
+        filepath = QFileDialog.getExistingDirectory(self)
+        if filepath != "":
+            self.configer.config.download_path = filepath
+        self.show_config()
+
+    def select_log_path(self):
+        filepath = QFileDialog.getExistingDirectory(self)
+        if filepath != "":
+            self.configer.config.log_path = filepath
+        self.show_config()
+
+
+class AboutWindow(QWidget):
+    def __init__(self, main_window: MainWindow):
+        super(AboutWindow, self).__init__()
+        self.ui = Ui_AboutWiindow()
+        self.ui.setupUi(self)
+        self.main_window = main_window
+        self.bind()
+        self.load_content("about.html")
+
+    def bind(self):
+        pass
+
+    def load_content(self, content_path: str):
+        if os.path.exists(content_path):
+            with open(content_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            self.ui.textBrowser.setText(content)
+        else:
+            self.ui.textBrowser.setText("Coming Soon")
+
+
+class TutorialWindow(QWidget):
+    def __init__(self, main_window: MainWindow):
+        super(TutorialWindow, self).__init__()
+        self.ui = Ui_TutorialWindow()
+        self.ui.setupUi(self)
+        self.main_window = main_window
+        self.bind()
+        self.load_content("tutorial.html")
+
+    def bind(self):
+        pass
+
+    def load_content(self, content_path: str):
+        if os.path.exists(content_path):
+            with open(content_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            self.ui.textBrowser.setText(content)
+        else:
+            self.ui.textBrowser.setText("Coming Soon")
+
+
+if __name__ == '__main__':
+    app = QApplication([])
+    window = MainWindow()
+    window.show()
+    app.exec()
