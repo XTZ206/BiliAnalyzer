@@ -20,5 +20,8 @@ build/
 dist/
 /*.spec
 
+# Test
+test/
+
 # Temporary
 temp/
