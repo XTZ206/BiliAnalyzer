@@ -1,6 +1,6 @@
 ./venv/Scripts/activate
 Remove-Item .\dist\BiliAnalyzer -Recurse -Force
-pyinstaller -D .\bilianalyzer\main.py -i .\bilianalyzer\icon\main.png -n BiliAnalyzer -w
+pyinstaller -D .\bilianalyzer\main.py -i .\bilianalyzer\icon\main.ico -n BiliAnalyzer -w
 
 # 资源文件夹不存在时创建对应资源文件夹
 if ((Test-Path -Path .\dist\BiliAnalyzer\icon) -eq $false)
