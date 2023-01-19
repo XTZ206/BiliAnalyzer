@@ -96,7 +96,8 @@ class MainWindow(QMainWindow):
 
         info = get_info_ui()
         credential = self.configer.credential
-        downloader = CommentDownloader(**info, credential=credential, progress_signal=ui_signals.updateProgressBar)
+        downloader = CommentDownloader(**info, credential=credential,
+                                       progress_signal=ui_signals.updateProgressBar)
 
         self.logger.info(f"开始下载 下载参数:\n"
                          f"资源ID:{info['oid']}\n"
@@ -126,7 +127,9 @@ class MainWindow(QMainWindow):
     def call_download_error(self, error: Exception):
         call_msg_box(self, str(error))
 
-    def start_window(self, window_name: Literal["config", "about", "tutorial"]) -> Callable[[None], None]:
+    def start_window(self,
+                     window_name: Literal["config", "about", "tutorial"]) \
+            -> Callable[[None], None]:
         def start_wrapper():
             if self.sub_windows[window_name] is None:
                 self.sub_windows[window_name] = sub_window
