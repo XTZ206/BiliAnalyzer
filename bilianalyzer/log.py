@@ -4,6 +4,7 @@ from os import PathLike
 
 def setup_logger(logger: logging.Logger, log_path: PathLike[str], save_log: bool):
     # TODO: 补充注释
+    # TODO: 增加功能 可调日志等级
     logger.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(fmt="%(asctime)s|%(levelname)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
