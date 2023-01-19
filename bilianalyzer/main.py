@@ -13,7 +13,7 @@ from bilibili_api.comment import CommentResourceType
 from comments import CommentDownloader
 from converter import convert
 from config import Configer, Config
-from log import setup_logger
+from log import LoggerSetup
 from signals import ui_signals
 from ui.ui_main import Ui_MainWindow
 from ui.ui_config import Ui_ConfigWindow
@@ -27,8 +27,9 @@ class MainWindow(QMainWindow):
 
         self.configer = Configer()
         self.logger = logging.getLogger("main")
-        setup_logger(self.logger, self.configer.config.log_path,
-                     save_log=self.configer.config.save_log)
+        self.logger_setup = LoggerSetup(self.logger,
+                                        self.configer.config.log_path)
+        self.logger_setup.set_file_log(self.configer.config.save_log)
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -38,7 +39,6 @@ class MainWindow(QMainWindow):
             "about": None,
             "tutorial": None
         }
-
 
     def bind(self):
         self.ui.convertButton.clicked.connect(self.handle_convert)
@@ -102,7 +102,8 @@ class MainWindow(QMainWindow):
                 os.makedirs(current_download_path, exist_ok=True)
                 with open(f"{current_download_path}/comments_{current_time}.json", "w", encoding="utf-8") as f:
                     json.dump(serializable_comments, f, indent=4, ensure_ascii=False)
-                self.logger.info(f"保存完毕 保存位置:{current_download_path}/comments_{current_time}.json")
+                self.logger.info(f"保存完毕 保存位置:{current_download_path}"
+                                 f"/comments_{current_time}.json".replace("\\", "/"))
 
             except ResponseCodeException as download_error:
                 self.logger.warning(f"下载失败 失败原因:\n"
@@ -236,6 +237,7 @@ class ConfigWindow(QWidget):
             self.configer.check_log_path()
         except FileNotFoundError as error:
             call_msg_box(self, str(error))
+            return
 
         self.configer.dump_to_file()
 
