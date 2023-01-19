@@ -11,6 +11,7 @@ from bilibili_api import Credential, ResponseCodeException
 from bilibili_api.comment import CommentResourceType
 
 from comments import CommentDownloader
+from converter import convert
 from config import Configer, Config
 from log import setup_logger
 from signals import ui_signals
@@ -40,6 +41,9 @@ class MainWindow(QMainWindow):
 
 
     def bind(self):
+        self.ui.convertButton.clicked.connect(self.handle_convert)
+        self.ui.copyButton.clicked.connect(self.handle_copy)
+
         self.ui.downloadButton.clicked.connect(self.handle_download)
         self.ui.helpButton.clicked.connect(self.start_window("tutorial"))
         self.ui.actionQuit.triggered.connect(sys.exit)
@@ -48,6 +52,23 @@ class MainWindow(QMainWindow):
         self.ui.actionTutorial.triggered.connect(self.start_window("tutorial"))
         ui_signals.updateProgressBar.connect(self.update_progress_bar)
         ui_signals.callDownloadError.connect(self.call_download_error)
+
+    def handle_convert(self):
+        sid = self.ui.convertInput.text()
+
+        try:
+            res = convert(sid)
+            self.ui.convertOutput.setReadOnly(False)
+            self.ui.convertOutput.setText(res)
+            self.ui.convertOutput.setReadOnly(True)
+
+        except (ValueError, TypeError) as error:
+            call_msg_box(self, str(error))
+
+    def handle_copy(self):
+        clipboard = QApplication.clipboard()
+        clipboard.setText(self.ui.convertOutput.text())
+        call_msg_box(self, "复制成功", "information")
 
     def handle_download(self):
         def get_info_ui():
