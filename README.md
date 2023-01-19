@@ -12,7 +12,6 @@ python main.py
 - Python **>= 3.10.0**
 - bilibili-api-python **>= 14.0.0**
 - PySide6 **>=6.4.2**
-- 
 
 ## License
 GNU General Public License version 3.0
