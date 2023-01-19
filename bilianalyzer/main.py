@@ -10,8 +10,8 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, Q
 from bilibili_api import Credential, ResponseCodeException
 from bilibili_api.comment import CommentResourceType
 
-from comments import CommentDownloader
-from converter import convert
+from download import CommentDownloader
+from convert import convert
 from config import Configer, Config
 from log import LoggerSetup
 from signals import ui_signals
