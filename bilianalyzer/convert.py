@@ -1,7 +1,12 @@
+import json
+
 from bilibili_api import bvid2aid, aid2bvid
+from bilibili_api.user import User
+
+from bilianalyzer.exceptions import FileFormatException
 
 
-def convert(sid: str) -> str:
+def convert_video_id(sid: str) -> str:
     """
     把字符串输入的源ID转换为AV号/BV号
     Args:
@@ -27,6 +32,28 @@ def convert(sid: str) -> str:
         except ValueError:
             raise ValueError("输入的av号只能带有数字")
     elif sid == "":
-        raise TypeError("输入的值不能为空")
+        raise ValueError("输入的值不能为空")
     else:
-        raise TypeError("输入的值格式错误\nBV号必须带有前缀")
+        raise ValueError("输入的值格式错误\nBV号必须带有前缀")
+
+
+def convert_cmtfile_to_users(cmtfile: str) -> list[User]:
+    """
+
+    Args:
+        cmtfile     (str)   : 评论文件路径
+
+    Returns:
+        list[User]: 转换得到的用户列表 无重复
+    """
+    with open(cmtfile, "r", encoding="utf-8") as f:
+        comments = json.load(f)
+
+    try:
+        uids: set[int] = set()
+        for comment in comments:
+            uids.add(comment["user"])
+        return [User(uid) for uid in uids]
+
+    except KeyError:
+        raise FileFormatException("文件格式错误")
