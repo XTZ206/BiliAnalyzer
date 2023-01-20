@@ -1,7 +1,7 @@
 import logging
+import os
 import sys
 from logging import Logger, Formatter, StreamHandler, FileHandler
-import os
 from os import PathLike
 
 
