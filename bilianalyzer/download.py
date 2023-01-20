@@ -6,6 +6,8 @@ from PySide6.QtCore import Signal
 from bilibili_api import sync, Credential
 from bilibili_api.comment import CommentResourceType
 
+from bilianalyzer.exceptions import CheckingException
+
 RawData = NewType("RawData", dict)  # API返回结果
 
 
@@ -31,10 +33,11 @@ class CommentDownloader:
                  progress_signal: Signal | None = None):
         """
         Args:
-            oid        (int)                        : 资源 ID
-            otype      (CommentResourceType)        : 资源类枚举
-            indexes    (Collection[int])            : 下载范围
-            credential (Credential | None, optional): 凭据. Defaults to None.
+            oid             (int)                           : 资源 ID
+            otype           (CommentResourceType)           : 资源类枚举
+            indexes         (Collection[int])               : 下载范围
+            credential      (Credential | None, optional)   : 凭据. Defaults to None.
+            progress_signal (Signal | None, optional)       : 更新进度条的信号
         """
 
         self.oid: int = oid
@@ -82,7 +85,8 @@ class CommentDownloader:
         """
         下载并记录结果
         """
-        assert self.is_checked
+        if not self.is_checked:
+            raise CheckingException("下载前未检查传入参数")
 
         for progress, index in enumerate(self.indexes):
             self.current_progress = progress + 1
@@ -90,11 +94,12 @@ class CommentDownloader:
             raw: dict[str, RawData] = sync(coroutine)
 
             reply: RawData
-            for reply in raw["replies"]:
-                if Reply(reply) not in self.replies:
-                    self.add_comment(Reply(reply))
-            if self.progress_signal is not None:
-                self.progress_signal.emit(self.current_progress)
+            if raw["replies"] is not None:
+                for reply in raw["replies"]:
+                    if Reply(reply) not in self.replies:
+                        self.add_comment(Reply(reply))
+                if self.progress_signal is not None:
+                    self.progress_signal.emit(self.current_progress)
             time.sleep(1)
 
     def add_comment(self, reply: "Reply") -> None:
@@ -138,7 +143,7 @@ class CommentDownloader:
             list[dict]: 可序列化的评论列表
         """
         replies: list[Reply] = self.output_comments(key=key, reverse=reverse)
-        return [reply.to_jsonable() for reply in replies]
+        return [reply.serializable_reply() for reply in replies]
 
 
 class Reply:
@@ -186,7 +191,7 @@ class Reply:
     def __hash__(self):
         return hash(self.rpid)
 
-    def to_jsonable(self):
+    def serializable_reply(self):
         """
          转换本条评论为可被json储存的格式
         """
