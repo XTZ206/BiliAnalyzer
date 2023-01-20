@@ -4,6 +4,7 @@ import os
 import sys
 import threading
 import time
+from collections import OrderedDict
 from typing import Callable, Literal
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QTableWidgetItem
@@ -11,14 +12,15 @@ from bilibili_api import Credential, ResponseCodeException
 from bilibili_api.comment import CommentResourceType
 
 from analyze import UserAnalyzer
-from download import CommentDownloader
-from convert import convert
 from config import Configer, Config
+from convert import convert_video_id
+from download import CommentDownloader
+from exceptions import CheckingException
 from log import LoggerSetup
 from signals import ui_signals
-from ui.ui_main import Ui_MainWindow
-from ui.ui_config import Ui_ConfigWindow
 from ui.ui_about import Ui_AboutWiindow
+from ui.ui_config import Ui_ConfigWindow
+from ui.ui_main import Ui_MainWindow
 from ui.ui_tutorial import Ui_TutorialWindow
 
 
