@@ -4,6 +4,8 @@ import os
 from bilibili_api import Credential
 from bilibili_api.login import login_with_qrcode
 
+from bilianalyzer.exceptions import FileNotSelectedException
+
 
 class Config:
     """
@@ -91,11 +93,11 @@ class Configer:
 
     def check_download_path(self):
         if not os.path.exists(self.config.download_path):
-            raise FileNotFoundError("未指定下载路径")
+            raise FileNotSelectedException("未指定下载路径")
 
     def check_log_path(self):
         if not os.path.exists(self.config.log_path) and self.config.save_log:
-            raise FileNotFoundError("未指定日志路径")
+            raise FileNotSelectedException("未指定日志路径")
 
     def __str__(self):
         return json.dumps({
