@@ -43,7 +43,7 @@
        </font>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="convertTab">
        <attribute name="title">
@@ -351,7 +351,7 @@
           <item>
            <layout class="QVBoxLayout" name="buttonLayout">
             <item>
-             <widget class="QProgressBar" name="progressBar">
+             <widget class="QProgressBar" name="downloadProgress">
               <property name="font">
                <font>
                 <pointsize>14</pointsize>
@@ -395,18 +395,6 @@
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QPushButton" name="helpButton">
-              <property name="font">
-               <font>
-                <pointsize>14</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>查看帮助</string>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
           <item>
@@ -443,13 +431,48 @@
        <attribute name="title">
         <string>分析</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="Line" name="analyzeLine">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-         </widget>
+         <layout class="QGridLayout" name="analyzeInfoLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="analyzeCmtfileLabel">
+            <property name="text">
+             <string>当前评论文件</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="analyzeCmtfileInput"/>
+          </item>
+          <item row="0" column="2">
+           <widget class="QToolButton" name="analyzeCmtfileButton">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="analyzeModeLabel">
+            <property name="text">
+             <string>分析模式</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="analyzeModeBox">
+            <item>
+             <property name="text">
+              <string>评论者关注</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>评论者粉丝牌</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <widget class="QTableWidget" name="analyzeTable">
@@ -462,57 +485,83 @@
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="analyzeLayout">
+         <widget class="Line" name="analyzeLine">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QProgressBar" name="analyzeProgress">
+          <property name="font">
+           <font>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>1</number>
+          </property>
+          <property name="value">
+           <number>0</number>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+          </property>
+          <property name="textVisible">
+           <bool>true</bool>
+          </property>
+          <property name="invertedAppearance">
+           <bool>false</bool>
+          </property>
+          <property name="textDirection">
+           <enum>QProgressBar::TopToBottom</enum>
+          </property>
+          <property name="format">
+           <string>%p%</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="analyzeControlLayout">
           <item>
-           <spacer name="analyzeSpacer_up">
+           <spacer name="analyzeControlSpacer_left">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
-              <height>40</height>
+              <width>40</width>
+              <height>20</height>
              </size>
             </property>
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="readButton">
-            <property name="text">
-             <string>读取评论</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="analyzeComboBox">
-            <item>
-             <property name="text">
-              <string>评论者粉丝牌</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者关注</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="analyzeButton">
+           <widget class="QPushButton" name="analyzeRunButton">
             <property name="text">
              <string>开始分析</string>
             </property>
            </widget>
           </item>
           <item>
-           <spacer name="analyzeSpacer_down">
+           <widget class="QPushButton" name="analyzeExportButton">
+            <property name="text">
+             <string>导出结果</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="analyzeControlSpacer_right">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
-              <height>40</height>
+              <width>40</width>
+              <height>20</height>
              </size>
             </property>
            </spacer>

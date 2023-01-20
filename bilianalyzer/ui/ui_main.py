@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
     QMainWindow, QMenu, QMenuBar, QProgressBar,
     QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
     QStatusBar, QTabWidget, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget)
+    QToolButton, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -230,30 +230,24 @@ class Ui_MainWindow(object):
 
         self.buttonLayout = QVBoxLayout()
         self.buttonLayout.setObjectName(u"buttonLayout")
-        self.progressBar = QProgressBar(self.downloadTab)
-        self.progressBar.setObjectName(u"progressBar")
-        self.progressBar.setFont(font1)
-        self.progressBar.setMinimum(0)
-        self.progressBar.setMaximum(1)
-        self.progressBar.setValue(0)
-        self.progressBar.setAlignment(Qt.AlignJustify|Qt.AlignVCenter)
-        self.progressBar.setTextVisible(True)
-        self.progressBar.setInvertedAppearance(False)
-        self.progressBar.setTextDirection(QProgressBar.TopToBottom)
+        self.downloadProgress = QProgressBar(self.downloadTab)
+        self.downloadProgress.setObjectName(u"downloadProgress")
+        self.downloadProgress.setFont(font1)
+        self.downloadProgress.setMinimum(0)
+        self.downloadProgress.setMaximum(1)
+        self.downloadProgress.setValue(0)
+        self.downloadProgress.setAlignment(Qt.AlignJustify|Qt.AlignVCenter)
+        self.downloadProgress.setTextVisible(True)
+        self.downloadProgress.setInvertedAppearance(False)
+        self.downloadProgress.setTextDirection(QProgressBar.TopToBottom)
 
-        self.buttonLayout.addWidget(self.progressBar)
+        self.buttonLayout.addWidget(self.downloadProgress)
 
         self.downloadButton = QPushButton(self.downloadTab)
         self.downloadButton.setObjectName(u"downloadButton")
         self.downloadButton.setFont(font1)
 
         self.buttonLayout.addWidget(self.downloadButton)
-
-        self.helpButton = QPushButton(self.downloadTab)
-        self.helpButton.setObjectName(u"helpButton")
-        self.helpButton.setFont(font1)
-
-        self.buttonLayout.addWidget(self.helpButton)
 
 
         self.controlLayout.addLayout(self.buttonLayout)
@@ -272,51 +266,89 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.downloadTab, "")
         self.analyzeTab = QWidget()
         self.analyzeTab.setObjectName(u"analyzeTab")
-        self.horizontalLayout = QHBoxLayout(self.analyzeTab)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.analyzeLine = QFrame(self.analyzeTab)
-        self.analyzeLine.setObjectName(u"analyzeLine")
-        self.analyzeLine.setFrameShape(QFrame.VLine)
-        self.analyzeLine.setFrameShadow(QFrame.Sunken)
+        self.verticalLayout_4 = QVBoxLayout(self.analyzeTab)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.analyzeInfoLayout = QGridLayout()
+        self.analyzeInfoLayout.setObjectName(u"analyzeInfoLayout")
+        self.analyzeCmtfileLabel = QLabel(self.analyzeTab)
+        self.analyzeCmtfileLabel.setObjectName(u"analyzeCmtfileLabel")
 
-        self.horizontalLayout.addWidget(self.analyzeLine)
+        self.analyzeInfoLayout.addWidget(self.analyzeCmtfileLabel, 0, 0, 1, 1)
+
+        self.analyzeCmtfileInput = QLineEdit(self.analyzeTab)
+        self.analyzeCmtfileInput.setObjectName(u"analyzeCmtfileInput")
+
+        self.analyzeInfoLayout.addWidget(self.analyzeCmtfileInput, 0, 1, 1, 1)
+
+        self.analyzeCmtfileButton = QToolButton(self.analyzeTab)
+        self.analyzeCmtfileButton.setObjectName(u"analyzeCmtfileButton")
+
+        self.analyzeInfoLayout.addWidget(self.analyzeCmtfileButton, 0, 2, 1, 1)
+
+        self.analyzeModeLabel = QLabel(self.analyzeTab)
+        self.analyzeModeLabel.setObjectName(u"analyzeModeLabel")
+
+        self.analyzeInfoLayout.addWidget(self.analyzeModeLabel, 1, 0, 1, 1)
+
+        self.analyzeModeBox = QComboBox(self.analyzeTab)
+        self.analyzeModeBox.addItem("")
+        self.analyzeModeBox.addItem("")
+        self.analyzeModeBox.setObjectName(u"analyzeModeBox")
+
+        self.analyzeInfoLayout.addWidget(self.analyzeModeBox, 1, 1, 1, 1)
+
+
+        self.verticalLayout_4.addLayout(self.analyzeInfoLayout)
 
         self.analyzeTable = QTableWidget(self.analyzeTab)
         self.analyzeTable.setObjectName(u"analyzeTable")
         self.analyzeTable.setShowGrid(True)
         self.analyzeTable.setColumnCount(0)
 
-        self.horizontalLayout.addWidget(self.analyzeTable)
+        self.verticalLayout_4.addWidget(self.analyzeTable)
 
-        self.analyzeLayout = QVBoxLayout()
-        self.analyzeLayout.setObjectName(u"analyzeLayout")
-        self.analyzeSpacer_up = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.analyzeLine = QFrame(self.analyzeTab)
+        self.analyzeLine.setObjectName(u"analyzeLine")
+        self.analyzeLine.setFrameShape(QFrame.HLine)
+        self.analyzeLine.setFrameShadow(QFrame.Sunken)
 
-        self.analyzeLayout.addItem(self.analyzeSpacer_up)
+        self.verticalLayout_4.addWidget(self.analyzeLine)
 
-        self.readButton = QPushButton(self.analyzeTab)
-        self.readButton.setObjectName(u"readButton")
+        self.analyzeProgress = QProgressBar(self.analyzeTab)
+        self.analyzeProgress.setObjectName(u"analyzeProgress")
+        self.analyzeProgress.setFont(font1)
+        self.analyzeProgress.setMinimum(0)
+        self.analyzeProgress.setMaximum(1)
+        self.analyzeProgress.setValue(0)
+        self.analyzeProgress.setAlignment(Qt.AlignJustify|Qt.AlignVCenter)
+        self.analyzeProgress.setTextVisible(True)
+        self.analyzeProgress.setInvertedAppearance(False)
+        self.analyzeProgress.setTextDirection(QProgressBar.TopToBottom)
 
-        self.analyzeLayout.addWidget(self.readButton)
+        self.verticalLayout_4.addWidget(self.analyzeProgress)
 
-        self.analyzeComboBox = QComboBox(self.analyzeTab)
-        self.analyzeComboBox.addItem("")
-        self.analyzeComboBox.addItem("")
-        self.analyzeComboBox.setObjectName(u"analyzeComboBox")
+        self.analyzeControlLayout = QHBoxLayout()
+        self.analyzeControlLayout.setObjectName(u"analyzeControlLayout")
+        self.analyzeControlSpacer_left = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.analyzeLayout.addWidget(self.analyzeComboBox)
+        self.analyzeControlLayout.addItem(self.analyzeControlSpacer_left)
 
-        self.analyzeButton = QPushButton(self.analyzeTab)
-        self.analyzeButton.setObjectName(u"analyzeButton")
+        self.analyzeRunButton = QPushButton(self.analyzeTab)
+        self.analyzeRunButton.setObjectName(u"analyzeRunButton")
 
-        self.analyzeLayout.addWidget(self.analyzeButton)
+        self.analyzeControlLayout.addWidget(self.analyzeRunButton)
 
-        self.analyzeSpacer_down = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.analyzeExportButton = QPushButton(self.analyzeTab)
+        self.analyzeExportButton.setObjectName(u"analyzeExportButton")
 
-        self.analyzeLayout.addItem(self.analyzeSpacer_down)
+        self.analyzeControlLayout.addWidget(self.analyzeExportButton)
+
+        self.analyzeControlSpacer_right = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.analyzeControlLayout.addItem(self.analyzeControlSpacer_right)
 
 
-        self.horizontalLayout.addLayout(self.analyzeLayout)
+        self.verticalLayout_4.addLayout(self.analyzeControlLayout)
 
         self.tabWidget.addTab(self.analyzeTab, "")
 
@@ -347,7 +379,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -374,15 +406,18 @@ class Ui_MainWindow(object):
         self.startLabel.setText(QCoreApplication.translate("MainWindow", u"\u5f00\u59cb\u7d22\u5f15", None))
         self.idLabel.setText(QCoreApplication.translate("MainWindow", u"\u8d44\u6e90ID", None))
         self.stepLabel.setText(QCoreApplication.translate("MainWindow", u"\u7d22\u5f15\u95f4\u9694", None))
-        self.progressBar.setFormat(QCoreApplication.translate("MainWindow", u"%p%", None))
+        self.downloadProgress.setFormat(QCoreApplication.translate("MainWindow", u"%p%", None))
         self.downloadButton.setText(QCoreApplication.translate("MainWindow", u"\u4e0b\u8f7d", None))
-        self.helpButton.setText(QCoreApplication.translate("MainWindow", u"\u67e5\u770b\u5e2e\u52a9", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.downloadTab), QCoreApplication.translate("MainWindow", u"\u4e0b\u8f7d", None))
-        self.readButton.setText(QCoreApplication.translate("MainWindow", u"\u8bfb\u53d6\u8bc4\u8bba", None))
-        self.analyzeComboBox.setItemText(0, QCoreApplication.translate("MainWindow", u"\u8bc4\u8bba\u8005\u7c89\u4e1d\u724c", None))
-        self.analyzeComboBox.setItemText(1, QCoreApplication.translate("MainWindow", u"\u8bc4\u8bba\u8005\u5173\u6ce8", None))
+        self.analyzeCmtfileLabel.setText(QCoreApplication.translate("MainWindow", u"\u5f53\u524d\u8bc4\u8bba\u6587\u4ef6", None))
+        self.analyzeCmtfileButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.analyzeModeLabel.setText(QCoreApplication.translate("MainWindow", u"\u5206\u6790\u6a21\u5f0f", None))
+        self.analyzeModeBox.setItemText(0, QCoreApplication.translate("MainWindow", u"\u8bc4\u8bba\u8005\u5173\u6ce8", None))
+        self.analyzeModeBox.setItemText(1, QCoreApplication.translate("MainWindow", u"\u8bc4\u8bba\u8005\u7c89\u4e1d\u724c", None))
 
-        self.analyzeButton.setText(QCoreApplication.translate("MainWindow", u"\u5f00\u59cb\u5206\u6790", None))
+        self.analyzeProgress.setFormat(QCoreApplication.translate("MainWindow", u"%p%", None))
+        self.analyzeRunButton.setText(QCoreApplication.translate("MainWindow", u"\u5f00\u59cb\u5206\u6790", None))
+        self.analyzeExportButton.setText(QCoreApplication.translate("MainWindow", u"\u5bfc\u51fa\u7ed3\u679c", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.analyzeTab), QCoreApplication.translate("MainWindow", u"\u5206\u6790", None))
         self.fileMenu.setTitle(QCoreApplication.translate("MainWindow", u"\u6587\u4ef6", None))
         self.editMenu.setTitle(QCoreApplication.translate("MainWindow", u"\u7f16\u8f91", None))
