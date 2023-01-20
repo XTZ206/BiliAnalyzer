@@ -6,7 +6,7 @@ from PySide6.QtCore import Signal
 from bilibili_api import sync, Credential
 from bilibili_api.comment import CommentResourceType
 
-from bilianalyzer.exceptions import CheckingException
+from exceptions import CheckingException
 
 RawData = NewType("RawData", dict)  # API返回结果
 

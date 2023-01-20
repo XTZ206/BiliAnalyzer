@@ -3,7 +3,7 @@ import json
 from bilibili_api import bvid2aid, aid2bvid
 from bilibili_api.user import User
 
-from bilianalyzer.exceptions import FileFormatException
+from exceptions import FileFormatException
 
 
 def convert_video_id(sid: str) -> str:

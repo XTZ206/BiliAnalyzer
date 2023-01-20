@@ -4,7 +4,7 @@ import os
 from bilibili_api import Credential
 from bilibili_api.login import login_with_qrcode
 
-from bilianalyzer.exceptions import FileNotSelectedException
+from exceptions import FileNotSelectedException
 
 
 class Config:
