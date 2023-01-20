@@ -14,3 +14,12 @@ if ((Test-Path -Path .\dist\BiliAnalyzer\docs) -eq $false)
     mkdir -Path .\dist\BiliAnalyzer\docs
 }
 Copy-Item -Path .\bilianalyzer\docs\* -Destination .\dist\BiliAnalyzer\docs -Force
+
+if ((Test-Path -Path .\dist\BiliAnalyzer-windows.zip) -eq $true)
+{
+    Remove-Item .\dist\BiliAnalyzer-windows.zip
+}
+7z a .\dist\BiliAnalyzer-windows.zip .\dist\BiliAnalyzer\
+
+Copy-Item -Path .\dist\BiliAnalyzer-windows.zip -Destination .\releases\ -Force
+Write-Output "Build Complete!"
