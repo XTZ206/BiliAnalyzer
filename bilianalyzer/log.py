@@ -74,6 +74,8 @@ class LoggerSetup:
         elif self.save_log is True:
             # Case: 关闭文件日志 ON -> OFF
             self.logger.removeHandler(self.file_handler)
+            self.save_log = save_log
+            self.log_path = self.log_path if log_path is None else log_path
 
     def _bind_file_handler(self):
         """
