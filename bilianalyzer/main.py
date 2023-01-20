@@ -172,15 +172,25 @@ class MainWindow(QMainWindow):
             # TODO: 自适应结果列宽度
             # TODO: 修复评论者关注功能
             # TODO: 可调前N项
-            analyze_mode = {
-                "评论者粉丝牌": "FanMedal",
-                "评论者关注": "Followings"
-            }[self.ui.analyzeModeBox.currentText()]
+            try:
+                start_time = int(time.time())
+                analyze_mode = {
+                    "评论者粉丝牌": "FanMedal",
+                    "评论者关注": "Followings"
+                }[self.ui.analyzeModeBox.currentText()]
 
-            result: OrderedDict = analyzer.get_top_result(analyzer.analyze(analyze_mode), 500)
-            ui_signals.showAnalyzeResult.emit(result)
-            self.logger.info("分析完成")
-            self.analyze_result = result
+                result: OrderedDict = analyzer.get_top_result(analyzer.analyze(analyze_mode), 500)
+                ui_signals.showAnalyzeResult.emit(result)
+                end_time = int(time.time())
+                self.logger.info(f"分析完成 用时{end_time - start_time}秒 共分析用户{len(analyzer.users)}名")
+                self.analyze_result = result
+            except ResponseCodeException as analyze_error:
+                self.logger.warning(f"分析失败 失败原因:\n"
+                                    f"{str(analyze_error)}")
+                ui_signals.callErrorBox.emit(analyze_error)
+
+            finally:
+                self.ui.analyzeRunButton.setEnabled(True)
 
         if self.ui.analyzeCmtfileInput.text() != "":
             self.cmtfile_path = self.ui.analyzeCmtfileInput.text()
@@ -196,6 +206,8 @@ class MainWindow(QMainWindow):
         analyzer.import_from_comments(self.cmtfile_path)
         self.logger.info("读取完成开始分析")
         self.ui.analyzeProgress.setMaximum(analyzer.maximum_progress)
+        self.ui.analyzeRunButton.setEnabled(False)
+
         thread = threading.Thread(target=analyze)
         thread.start()
 
