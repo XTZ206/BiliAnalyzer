@@ -192,12 +192,12 @@ class MainWindow(QMainWindow):
             self.ui.analyzeTable.setHorizontalHeaderLabels(["拥有粉丝牌", "出现次数"])
             for index, (item, count) in enumerate(data):
                 self.ui.analyzeTable.setItem(index, 0, QTableWidgetItem(item))
-                self.ui.analyzeTable.setItem(index, 1, QTableWidgetItem(count))
+                self.ui.analyzeTable.setItem(index, 1, QTableWidgetItem(str(count)))
 
         elif self.ui.analyzeComboBox.currentText() == "评论者关注":
             data = {}
             for followings in analyzer.analyze_users_following():
-                for following in followings.follwings:
+                for following in followings.followings:
                     if following not in data:
                         data[following] = 1
                     else:
@@ -209,10 +209,11 @@ class MainWindow(QMainWindow):
             self.ui.analyzeTable.setColumnCount(2)
             self.ui.analyzeTable.setHorizontalHeaderLabels(["关注中", "出现次数"])
             for index, (item, count) in enumerate(data):
-                self.ui.analyzeTable.setItem(index + 1, 0, QTableWidgetItem(item))
+                self.ui.analyzeTable.setItem(index + 1, 0, QTableWidgetItem(item.get_uid()))
                 self.ui.analyzeTable.setItem(index + 1, 1, QTableWidgetItem(str(count)))
-            self.ui.analyzeTable.show()
-            self.logger.info("分析完成")
+
+        self.ui.analyzeTable.show()
+        self.logger.info("分析完成")
 
     def update_progress_bar(self, value: int):
         self.ui.progressBar.setValue(value)
