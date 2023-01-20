@@ -67,7 +67,7 @@ class MainWindow(QMainWindow):
         # 自定义信号
         ui_signals.updateDownloadProgress.connect(self.update_download_progress)
         ui_signals.updateAnalyzeProgress.connect(self.update_analyze_progress)
-        ui_signals.callDownloadError.connect(self.call_download_error)
+        ui_signals.callErrorBox.connect(self.call_error_box)
         ui_signals.showAnalyzeResult.connect(self.show_analyze_result)
 
     def handle_convert(self):
@@ -128,7 +128,7 @@ class MainWindow(QMainWindow):
             except (ResponseCodeException, CheckingException) as download_error:
                 self.logger.warning(f"下载失败 失败原因:\n"
                                     f"{str(download_error)}")
-                ui_signals.callDownloadError.emit(download_error)
+                ui_signals.callErrorBox.emit(download_error)
 
             finally:
                 self.ui.downloadButton.setEnabled(True)
@@ -236,7 +236,7 @@ class MainWindow(QMainWindow):
     def update_analyze_progress(self, value: int):
         self.ui.analyzeProgress.setValue(value)
 
-    def call_download_error(self, error: Exception):
+    def call_error_box(self, error: Exception):
         call_msg_box(self, str(error))
 
     def start_window(self,

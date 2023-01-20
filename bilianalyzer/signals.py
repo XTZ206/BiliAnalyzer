@@ -6,7 +6,7 @@ from PySide6.QtCore import Signal, QObject
 class UiSignals(QObject):
     updateDownloadProgress = Signal(int)
     updateAnalyzeProgress = Signal(int)
-    callDownloadError = Signal(Exception)
+    callErrorBox = Signal(Exception)
     showAnalyzeResult = Signal(OrderedDict, list[str])
 
 
