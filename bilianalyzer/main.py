@@ -164,13 +164,9 @@ class MainWindow(QMainWindow):
 
     def handle_analyze(self):
         # TODO: 优化加载顺序
-        # TODO: 增加导入本地评论功能
-        # TODO: 增加日志输出
-        # TODO: 添加分析计时功能
 
         def analyze():
             # TODO: 自适应结果列宽度
-            # TODO: 修复评论者关注功能
             # TODO: 可调前N项
             try:
                 start_time = int(time.time())
