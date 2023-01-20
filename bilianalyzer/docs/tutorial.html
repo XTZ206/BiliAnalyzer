@@ -5,38 +5,93 @@
     <title>教程</title>
 </head>
 <body style=" font-family:'Microsoft YaHei UI'; font-size:14pt; font-weight:400; font-style:normal;">
-    <h1>BiliAnalyzer教程</h1>
-    <h2>快速上手</h2>
-    <p>
-        在资源ID处输入视频的AV号<br>
-        并选择资源类型为视频<br>
-        设定结束索引为一个较大整数<br>
-        设定索引间隔约为20<br>
+<h1>BiliAnalyzer教程</h1>
+<h2 id="contents">目录</h2>
 
-    </p>
-    <h2>获取资源ID</h2>
-    <table border="1">
-        <tr>
-            <td>资源类型</td>
-            <td>资源ID</td>
-        </tr>
-        <tr>
-            <td>视频</td>
-            <td>视频对应的AV号</td>
-        </tr>
-        <tr>
-            <td>动态</td>
-            <td>动态对应的URL中t.bilibili.com/到?之间的数值</td>
-        </tr>
-        <tr>
-            <td>画册(带图动态)</td>
-            <td>动态对应的URL中t.bilibili.com/到?之间的数值</td>
-        </tr>
-    </table>
-    <a href="https://nemo2011.github.io/bilibili-api/#/modules/comment">具体细节请见文档</a>
 
-    <br/>
-    <p>联系我们:<a href="https://github.com/XTZ206/BiliAnalyzer">Github</a></p>
+<h2 id="quick_start">快速上手</h2>
+<h3 id="quick_convert">转换模块</h3>
+<p>
+    从网页上或是其他地方得到AV号和BV号（形如av+纯数字和BV+10位英文数字混合），
+    并粘贴入上方的输入框，
+    点击转换按钮就能够得到对应的BV号或AV号。
+    可以点击复制按钮来复制到剪贴板。
+    转换得到的AV号不带有av前缀，可以直接粘贴至下载模块使用。
+</p>
+<h3 id="quick_download">下载模块</h3>
+<p>
+    以视频为例，将视频的AV号粘贴到资源ID的输入栏中，
+    调整结束索引约为视频评论总数，
+    调整索引间隔约为20左右，
+    打开编辑菜单中的设置按钮，
+    指定一个目录为下载路径（所有下载的评论文件都会以资源ID为文件夹分类），
+    点击下载按钮并耐心等待进度条到达100%，
+    检查下载目录即可看到下载的评论文件。<br>
+    目前本下载模块只支持下载评论中的根评论<br>
+    <a href="#download_args">下载参数</a><br>
+    <a href="#root_comment">根评论</a>
+</p>
+<h3 id="quick_analyze">分析模块</h3>
+<p>
+    视频评论下载完毕后，对应的评论文件路径会自动导入分析模块中，
+    也可以手动选择一个评论文件进行分析，
+    并以你所想设置分析模式，
+    随后点击开始分析按钮，耐心等待进度条到达100%，
+    分析模块中央的表格就会出现数据，
+    可以拖动两列的线放大缩小来更好地观察数据。
+    点击导出按钮并选择保存路径即可保存分析结果<br>
+    分析结果中，
+    左侧的数据如果为数字表示关注的UP主的UID，否则表示拥有的粉丝牌对应的UP主昵称，
+    右侧的数据表示分析的评论者中共有多少人关注该UP主或是拥有该UP主的粉丝牌。
+
+</p>
+<h2 id="advanced_tutorial">进阶教程</h2>
+<h3 id="resource_id">资源ID</h3>
+<p>
+    资源ID是B站不同资源（如视频/动态/画册/专栏等）的统一ID，
+    对于不同类型的资源，它们的资源ID获取方式也不相同。<br/>
+    以下表格标识了如何获取一些常用资源的资源ID：
+</p>
+<table border="1" id="oid_table">
+    <tr>
+        <td>资源类型</td>
+        <td>资源ID</td>
+    </tr>
+    <tr>
+        <td>视频</td>
+        <td>视频对应的AV号（可以使用转换模块转换BV号得到）</td>
+    </tr>
+    <tr>
+        <td>动态</td>
+        <td>动态对应的URL中t.bilibili.com/到?之间的数值</td>
+    </tr>
+    <tr>
+        <td>画册（带图动态）</td>
+        <td>动态对应的URL中t.bilibili.com/到?之间的数值</td>
+    </tr>
+</table>
+<a href="https://nemo2011.github.io/bilibili-api/#/modules/comment">具体细节请见文档</a>
+<h3 id="download_args">下载参数</h3>
+B站目前的评论机制为评论流，通过一个游标来标识要读取评论的位置，
+开始索引表示第一个游标的位置，结束索引表示最后一个游标不超过的位置，
+索引间隔表示相邻游标间的位置间隔。<br>
+因此导致如下结果：<br>
+调整开始索引为一个接近评论总数的值可以得到较为靠近现在的评论，<br>
+结束索引过小则无法下载完全，过大则会重复请求末尾评论消耗时间，<br>
+索引间隔过小则过于消耗时间，过大则可能会遗漏评论。<br>
+
+<h3 id="root_comment">根评论</h3>
+<p>
+    根评论指的是直接发表在资源下方评论区中，而非回复其他评论的评论。
+    楼中楼的评论和回复楼中楼评论的评论，都不属于根评论。
+    目前下载时不会下载除根评论外的其他评论。
+</p>
+<h3 id="contact_developer">联系开发者</h3>
+<p>
+    如果您有任何建议或意见，请访问<a href="https://github.com/XTZ206/BiliAnalyzer">Github</a>联系开发者。
+</p>
+
+
 
 </body>
 </html>
