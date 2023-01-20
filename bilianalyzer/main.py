@@ -42,29 +42,39 @@ class MainWindow(QMainWindow):
             "about": None,
             "tutorial": None
         }
-        self.comment_file: str = ""
+        self.analyze_result: OrderedDict | None = None
+        self.cmtfile_path: str = ""
 
     def bind(self):
+        # 转换页
         self.ui.convertButton.clicked.connect(self.handle_convert)
         self.ui.copyButton.clicked.connect(self.handle_copy)
-        self.ui.downloadButton.clicked.connect(self.handle_download)
-        self.ui.helpButton.clicked.connect(self.start_window("tutorial"))
-        self.ui.readButton.clicked.connect(self.handle_read)
-        self.ui.analyzeButton.clicked.connect(self.handle_analyze)
 
+        # 下载页
+        self.ui.downloadButton.clicked.connect(self.handle_download)
+        self.ui.analyzeCmtfileButton.clicked.connect(self.select_cmtfile_path)
+
+        # 分析页
+        self.ui.analyzeRunButton.clicked.connect(self.handle_analyze)
+        self.ui.analyzeExportButton.clicked.connect(self.export_analyze_result)
+
+        # 菜单栏
         self.ui.actionQuit.triggered.connect(sys.exit)
         self.ui.actionConfig.triggered.connect(self.start_window("config"))
         self.ui.actionAbout.triggered.connect(self.start_window("about"))
         self.ui.actionTutorial.triggered.connect(self.start_window("tutorial"))
 
-        ui_signals.updateProgressBar.connect(self.update_progress_bar)
+        # 自定义信号
+        ui_signals.updateDownloadProgress.connect(self.update_download_progress)
+        ui_signals.updateAnalyzeProgress.connect(self.update_analyze_progress)
         ui_signals.callDownloadError.connect(self.call_download_error)
+        ui_signals.showAnalyzeResult.connect(self.show_analyze_result)
 
     def handle_convert(self):
         sid = self.ui.convertInput.text()
 
         try:
-            res = convert(sid)
+            res = convert_video_id(sid)
             self.ui.convertOutput.setReadOnly(False)
             self.ui.convertOutput.setText(res)
             self.ui.convertOutput.setReadOnly(True)
@@ -110,17 +120,15 @@ class MainWindow(QMainWindow):
                 with open(f"{current_download_path}/comments_{current_time}.json".replace("\\", "/"), "w",
                           encoding="utf-8") as f:
                     json.dump(serializable_comments, f, indent=4, ensure_ascii=False)
-                self.comment_file = f"{current_download_path}/comments_{current_time}.json".replace("\\", "/")
-                self.logger.info(f"保存完毕 保存位置:{current_download_path}"
-                                 f"/comments_{current_time}.json".replace("\\", "/"))
+                cmtfile_path = f"{current_download_path}/comments_{current_time}.json".replace("\\", "/")
+                self.cmtfile_path = cmtfile_path
+                self.logger.info(f"保存完毕 保存位置:{self.cmtfile_path}")
+                self.show_cmtfile_path()
 
-            except ResponseCodeException as download_error:
+            except (ResponseCodeException, CheckingException) as download_error:
                 self.logger.warning(f"下载失败 失败原因:\n"
                                     f"{str(download_error)}")
                 ui_signals.callDownloadError.emit(download_error)
-            except AssertionError:
-                self.logger.warning(f"下载失败 失败原因: 下载前未检查传入参数")
-                ui_signals.callDownloadError.emit(Exception("下载前未检查传入参数"))
 
             finally:
                 self.ui.downloadButton.setEnabled(True)
@@ -128,7 +136,7 @@ class MainWindow(QMainWindow):
         info = get_info_ui()
         credential = self.configer.credential
         downloader = CommentDownloader(**info, credential=credential,
-                                       progress_signal=ui_signals.updateProgressBar)
+                                       progress_signal=ui_signals.updateDownloadProgress)
 
         self.logger.info(f"开始下载 下载参数:\n"
                          f"资源ID:{info['oid']}\n"
@@ -151,74 +159,82 @@ class MainWindow(QMainWindow):
 
         else:
             self.ui.downloadButton.setEnabled(False)
-            self.ui.progressBar.setMaximum(downloader.maximum_progress)
-            self.ui.progressBar.setVisible(True)
-
-    def handle_read(self):
-        filepath, filetype = QFileDialog.getOpenFileName(self)
-        if os.path.exists(filepath):
-            self.comment_file = filepath
-        else:
-            call_msg_box(self, "请选择有效的评论文件")
+            self.ui.downloadProgress.setMaximum(downloader.maximum_progress)
+            self.ui.downloadProgress.setVisible(True)
 
     def handle_analyze(self):
         # TODO: 优化加载顺序
         # TODO: 增加导入本地评论功能
         # TODO: 增加日志输出
+        # TODO: 添加分析计时功能
+
+        def analyze():
+            # TODO: 自适应结果列宽度
+            # TODO: 修复评论者关注功能
+            # TODO: 可调前N项
+            analyze_mode = {
+                "评论者粉丝牌": "FanMedal",
+                "评论者关注": "Followings"
+            }[self.ui.analyzeModeBox.currentText()]
+
+            result: OrderedDict = analyzer.get_top_result(analyzer.analyze(analyze_mode), 500)
+            ui_signals.showAnalyzeResult.emit(result)
+            self.logger.info("分析完成")
+            self.analyze_result = result
+
+        if self.ui.analyzeCmtfileInput.text() != "":
+            self.cmtfile_path = self.ui.analyzeCmtfileInput.text()
+
         self.logger.info(f"读取评论:\n"
                          f"评论文件路径:\n"
-                         f"{self.comment_file}")
-        analyzer = UserAnalyzer(credential=self.configer.credential)
-        if not os.path.exists(self.comment_file):
-            call_msg_box(self, str("请先指定评论文件"))
-            return
-        analyzer.import_from_comments(self.comment_file)
+                         f"{self.cmtfile_path}")
+        if not os.path.exists(self.cmtfile_path):
+            call_msg_box(self, str("请先指定有效的评论文件"))
+
+        analyzer = UserAnalyzer(credential=self.configer.credential,
+                                progress_signal=ui_signals.updateAnalyzeProgress)
+        analyzer.import_from_comments(self.cmtfile_path)
         self.logger.info("读取完成开始分析")
+        self.ui.analyzeProgress.setMaximum(analyzer.maximum_progress)
+        thread = threading.Thread(target=analyze)
+        thread.start()
 
-        # TODO: 自适应结果列宽度
-        # FIXME: 修复出现次数不显示的问题
-        if self.ui.analyzeComboBox.currentText() == "评论者粉丝牌":
-            fan_medals = analyzer.analyze_users_medal()
-            data = {}
-            for fan_medal in fan_medals:
-                for each_medal in fan_medal.medals:
-                    if each_medal not in data:
-                        data[each_medal] = 1
-                    else:
-                        data[each_medal] += 1
+    def show_analyze_result(self, result: OrderedDict):
+        self.ui.analyzeTable.setRowCount(len(result))
+        self.ui.analyzeTable.setColumnCount(2)
+        self.ui.analyzeTable.setHorizontalHeaderLabels(["粉丝牌/关注", "出现次数"])
+        self.ui.analyzeTable.setColumnWidth(0, 10)
+        self.ui.analyzeTable.setColumnWidth(1, 10)
 
-            data = sorted([(item, data[item]) for item in data], key=lambda x: x[1])
-
-            self.ui.analyzeTable.setRowCount(len(data))
-            self.ui.analyzeTable.setColumnCount(2)
-            self.ui.analyzeTable.setHorizontalHeaderLabels(["拥有粉丝牌", "出现次数"])
-            for index, (item, count) in enumerate(data):
-                self.ui.analyzeTable.setItem(index, 0, QTableWidgetItem(item))
-                self.ui.analyzeTable.setItem(index, 1, QTableWidgetItem(str(count)))
-
-        elif self.ui.analyzeComboBox.currentText() == "评论者关注":
-            data = {}
-            for followings in analyzer.analyze_users_following():
-                for following in followings.followings:
-                    if following not in data:
-                        data[following] = 1
-                    else:
-                        data[following] += 1
-
-            data = sorted([(item, data[item]) for item in data], key=lambda x: x[1])
-
-            self.ui.analyzeTable.setRowCount(len(data))
-            self.ui.analyzeTable.setColumnCount(2)
-            self.ui.analyzeTable.setHorizontalHeaderLabels(["关注中", "出现次数"])
-            for index, (item, count) in enumerate(data):
-                self.ui.analyzeTable.setItem(index + 1, 0, QTableWidgetItem(item.get_uid()))
-                self.ui.analyzeTable.setItem(index + 1, 1, QTableWidgetItem(str(count)))
-
+        for index, (name, count) in enumerate(result.items()):
+            self.ui.analyzeTable.setItem(index, 0, QTableWidgetItem(str(name)))
+            self.ui.analyzeTable.setItem(index, 1, QTableWidgetItem(str(count)))
         self.ui.analyzeTable.show()
-        self.logger.info("分析完成")
 
-    def update_progress_bar(self, value: int):
-        self.ui.progressBar.setValue(value)
+    def export_analyze_result(self):
+        if self.analyze_result is None:
+            call_msg_box(self, "请先分析才能进行导出")
+            return
+        self.logger.info("开始保存分析结果")
+        filepath, filetype = QFileDialog.getSaveFileName(self, filter="json文件 (*.json)")
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(self.analyze_result, f, indent=4, ensure_ascii=False)
+        self.logger.info(f"保存完毕 保存位置: {filepath}")
+
+    def show_cmtfile_path(self):
+        self.ui.analyzeCmtfileInput.setText(self.cmtfile_path)
+
+    def select_cmtfile_path(self):
+        filepath, filetype = QFileDialog.getOpenFileName(self)
+        if os.path.exists(filepath):
+            self.cmtfile_path = filepath
+        self.show_cmtfile_path()
+
+    def update_download_progress(self, value: int):
+        self.ui.downloadProgress.setValue(value)
+
+    def update_analyze_progress(self, value: int):
+        self.ui.analyzeProgress.setValue(value)
 
     def call_download_error(self, error: Exception):
         call_msg_box(self, str(error))
