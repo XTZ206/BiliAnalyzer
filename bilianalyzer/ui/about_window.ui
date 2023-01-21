@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AboutWiindow</class>
- <widget class="QWidget" name="AboutWiindow">
+ <class>AboutWindow</class>
+ <widget class="QWidget" name="AboutWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>480</width>
-    <height>200</height>
+    <height>240</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>480</width>
-    <height>200</height>
+    <height>240</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>480</width>
-    <height>200</height>
+    <height>240</height>
    </size>
   </property>
   <property name="contextMenuPolicy">
@@ -41,7 +41,7 @@
       </font>
      </property>
      <property name="text">
-      <string>关于</string>
+      <string>关于BiliAnalyzer</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

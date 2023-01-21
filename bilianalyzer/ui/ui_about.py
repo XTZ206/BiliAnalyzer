@@ -18,20 +18,20 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QLabel, QSizePolicy, QTextBrowser,
     QVBoxLayout, QWidget)
 
-class Ui_AboutWiindow(object):
-    def setupUi(self, AboutWiindow):
-        if not AboutWiindow.objectName():
-            AboutWiindow.setObjectName(u"AboutWiindow")
-        AboutWiindow.resize(480, 200)
-        AboutWiindow.setMinimumSize(QSize(480, 200))
-        AboutWiindow.setMaximumSize(QSize(480, 200))
-        AboutWiindow.setContextMenuPolicy(Qt.DefaultContextMenu)
+class Ui_AboutWindow(object):
+    def setupUi(self, AboutWindow):
+        if not AboutWindow.objectName():
+            AboutWindow.setObjectName(u"AboutWindow")
+        AboutWindow.resize(480, 240)
+        AboutWindow.setMinimumSize(QSize(480, 240))
+        AboutWindow.setMaximumSize(QSize(480, 240))
+        AboutWindow.setContextMenuPolicy(Qt.DefaultContextMenu)
         icon = QIcon()
         icon.addFile(u"./icon/info.png", QSize(), QIcon.Normal, QIcon.Off)
-        AboutWiindow.setWindowIcon(icon)
-        self.verticalLayout = QVBoxLayout(AboutWiindow)
+        AboutWindow.setWindowIcon(icon)
+        self.verticalLayout = QVBoxLayout(AboutWindow)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.aboutLabel = QLabel(AboutWiindow)
+        self.aboutLabel = QLabel(AboutWindow)
         self.aboutLabel.setObjectName(u"aboutLabel")
         font = QFont()
         font.setPointSize(14)
@@ -40,7 +40,7 @@ class Ui_AboutWiindow(object):
 
         self.verticalLayout.addWidget(self.aboutLabel)
 
-        self.textBrowser = QTextBrowser(AboutWiindow)
+        self.textBrowser = QTextBrowser(AboutWindow)
         self.textBrowser.setObjectName(u"textBrowser")
         self.textBrowser.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.textBrowser.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -50,16 +50,16 @@ class Ui_AboutWiindow(object):
         self.verticalLayout.addWidget(self.textBrowser)
 
 
-        self.retranslateUi(AboutWiindow)
+        self.retranslateUi(AboutWindow)
 
-        QMetaObject.connectSlotsByName(AboutWiindow)
+        QMetaObject.connectSlotsByName(AboutWindow)
     # setupUi
 
-    def retranslateUi(self, AboutWiindow):
-        AboutWiindow.setWindowTitle(QCoreApplication.translate("AboutWiindow", u"\u5173\u4e8e", None))
-        self.aboutLabel.setText(QCoreApplication.translate("AboutWiindow", u"\u5173\u4e8e", None))
+    def retranslateUi(self, AboutWindow):
+        AboutWindow.setWindowTitle(QCoreApplication.translate("AboutWindow", u"\u5173\u4e8e", None))
+        self.aboutLabel.setText(QCoreApplication.translate("AboutWindow", u"\u5173\u4e8eBiliAnalyzer", None))
         self.textBrowser.setMarkdown("")
-        self.textBrowser.setHtml(QCoreApplication.translate("AboutWiindow", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        self.textBrowser.setHtml(QCoreApplication.translate("AboutWindow", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "hr { height: 1px; border-width: 0; }\n"
