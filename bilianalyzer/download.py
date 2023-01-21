@@ -1,3 +1,4 @@
+import json
 import time
 from typing import Collection, Literal, Sequence
 
@@ -150,3 +151,8 @@ class UserDownloader:
         )
 
 
+if __name__ == '__main__':
+    with open("credential", "r", encoding="utf-8") as f:
+        cdt = Credential(**(json.load(f)))
+        ud = UserDownloader([User(20165629)], cdt)
+        res = sync(ud.get_raw_data(0))
