@@ -1,12 +1,12 @@
 import json
-from typing import NewType
+from typing import TypeAlias, Sequence
 
 from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
 
 from exceptions import StorageException
 
-RawData = NewType("RawData", dict)  # API返回结果
+RawData: TypeAlias = list | dict  # API返回结果
 
 
 class CommentStorage:
@@ -25,9 +25,9 @@ class CommentStorage:
         emotes  (list[str])             : 评论表情
     """
 
-    def __init__(self, raw_data: RawData | None = None, cmt_file: dict | None = None):
+    def __init__(self, *, raw_data: RawData | None = None, cmt_file: dict | None = None):
         """
-        从API返回结果/cmt文件读取结果生成储存于内存中的评论格式
+        从API返回结果/cmt文件读取结果生成储存于内存中的评论数据格式
         Args:
             raw_data    (RawData)   : API返回结果，与cmt_file同时传入时覆盖cmt_file
             cmt_file    (dict)      : .cmt文件读取结果，不能与raw_data同时为空
@@ -82,7 +82,7 @@ class CommentFileInterface:
     def load(self) -> list[CommentStorage]:
         with open(self.filepath, "r", encoding="utf-8") as f:
             self.content = json.load(f)
-        return [self.content]
+        return [CommentStorage(cmt_file=comment) for comment in self.content]
 
     def dump(self, comments: list[CommentStorage]):
         self.content = [
