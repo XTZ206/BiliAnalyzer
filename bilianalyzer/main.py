@@ -18,6 +18,7 @@ from download import CommentDownloader
 from exceptions import CheckingException
 from log import LoggerSetup
 from signals import ui_signals
+from storage import CommentFileInterface
 from ui.ui_about import Ui_AboutWiindow
 from ui.ui_config import Ui_ConfigWindow
 from ui.ui_main import Ui_MainWindow
@@ -112,17 +113,20 @@ class MainWindow(QMainWindow):
                 downloader.download()
                 end_time = int(time.time())
                 self.logger.info(f"下载完毕 用时{end_time - start_time}秒")
-                serializable_comments = downloader.serializable_comments(key="rpid")
 
-                current_download_path = f"{self.configer.config.download_path}/{info['oid']}"
+                # 生成评论文件保存路径
                 current_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-                os.makedirs(current_download_path, exist_ok=True)
-                with open(f"{current_download_path}/comments_{current_time}.json".replace("\\", "/"), "w",
-                          encoding="utf-8") as f:
-                    json.dump(serializable_comments, f, indent=4, ensure_ascii=False)
-                cmtfile_path = f"{current_download_path}/comments_{current_time}.json".replace("\\", "/")
+                download_dir = f"{self.configer.config.download_path}/{info['oid']}"
+                cmtfile_path = f"{download_dir}/{current_time}.cmt".replace("\\", "/")
+                os.makedirs(download_dir, exist_ok=True)
+
+                # 保存文件
+                file_interface = CommentFileInterface(cmtfile_path)
+                file_interface.dump(downloader.output_comments(key="rpid"))
+                self.logger.info(f"保存完毕 保存位置:{cmtfile_path}")
+
+                # 自动将下载的评论文件传入分析模块
                 self.cmtfile_path = cmtfile_path
-                self.logger.info(f"保存完毕 保存位置:{self.cmtfile_path}")
                 self.show_cmtfile_path()
 
             except (ResponseCodeException, CheckingException) as download_error:

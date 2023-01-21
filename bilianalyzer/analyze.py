@@ -8,7 +8,7 @@ from PySide6.QtCore import Signal
 from bilibili_api import sync, Credential
 from bilibili_api.user import User
 
-from download import RawData
+from storage import RawData
 
 
 class Analysis(metaclass=abc.ABCMeta):

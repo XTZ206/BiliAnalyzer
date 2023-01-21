@@ -7,8 +7,9 @@ from bilibili_api import sync, Credential
 from bilibili_api.comment import CommentResourceType
 
 from exceptions import CheckingException
+from storage import CommentStorage, RawData
 
-RawData = NewType("RawData", dict)  # API返回结果
+
 
 
 class CommentDownloader:
@@ -21,7 +22,7 @@ class CommentDownloader:
         indexes             (Collection[int])               : 下载索引范围
         is_checked          (bool)                          : 是否已检查参数
         credential          (Credential | None, optional)   : 凭据. Defaults to None.
-        replies             (set[Reply])                    : 评论存储, 使用set去重
+        comment_storages    (set[CommentStorage])           : 评论存储, 使用set去重
         current_progress    (int)                           : 当前进度
         maximum_progress    (int)                           : 最大进度
         progress_signal     (Signal | None, optional)       : 进度条信号. Defaults to None.
@@ -45,7 +46,7 @@ class CommentDownloader:
         self.indexes: Collection[int] = indexes
         self.is_checked: bool = False
         self.credential: Credential | None = credential
-        self.replies: set[Reply] = set()
+        self.comment_storages: set[CommentStorage] = set()
 
         self.current_progress: int = 0
         self.maximum_progress: int = len(self.indexes)
@@ -96,113 +97,38 @@ class CommentDownloader:
             reply: RawData
             if raw["replies"] is not None:
                 for reply in raw["replies"]:
-                    if Reply(reply) not in self.replies:
-                        self.add_comment(Reply(reply))
+                    if CommentStorage(reply) not in self.comment_storages:
+                        self.add_comment(CommentStorage(reply))
                 if self.progress_signal is not None:
                     self.progress_signal.emit(self.current_progress)
             time.sleep(1)
 
-    def add_comment(self, reply: "Reply") -> None:
+    def add_comment(self, comment_storage: "CommentStorage") -> None:
         """
         添加评论到内置评论存储
         Args:
-            reply   (Reply) : 添加的评论
+            comment_storage   (CommentStorage) : 添加的评论
         """
-        if reply not in self.replies:
-            self.replies.add(reply)
+        if comment_storage not in self.comment_storages:
+            self.comment_storages.add(comment_storage)
 
     def output_comments(self,
                         key: Literal["rpid", "user", "time"] | None = None,
-                        reverse: bool = False) -> list["Reply"]:
+                        reverse: bool = False) -> list["CommentStorage"]:
         """
         排序后
         Args:
             key     (Literal["rpid", "user", "time"] | None)    : 评论排序方式
             reverse (bool)                                      : 是否倒序
         Return:
-            list[Reply]： 评论列表
+            list[comment_storage]： 评论列表
         """
         if key is not None:
             key_func = {
-                "rpid": lambda rp: rp.rpid,
-                "user": lambda rp: rp.user.get_uid(),
-                "time": lambda rp: rp.time,
+                "rpid": lambda cmt_st: cmt_st.rpid,
+                "user": lambda cmt_st: cmt_st.user.get_uid(),
+                "time": lambda cmt_st: cmt_st.time,
             }[key]  # 对应排序方式的处理函数
-            return sorted(self.replies, key=key_func, reverse=reverse)
+            return sorted(self.comment_storages, key=key_func, reverse=reverse)
         else:
-            return list(self.replies)
-
-    def serializable_comments(self,
-                              key: Literal["rpid", "user", "time"] | None = None,
-                              reverse: bool = False) -> list[dict]:
-        """
-        Args:
-            key     (Literal["rpid", "user", "time"] | None)    : 评论排序方式
-            reverse (bool)                                      : 是否倒序
-        Returns:
-            list[dict]: 可序列化的评论列表
-        """
-        replies: list[Reply] = self.output_comments(key=key, reverse=reverse)
-        return [reply.serializable_reply() for reply in replies]
-
-
-class Reply:
-    """
-    保存评论相关信息
-
-    Attributes:
-        rpid    (int)                   : 评论ID
-        oid     (int)                   : 评论所在资源ID
-        otype   (CommentResourceType)   : 评论所在资源类枚举
-        user    (User)                  : 评论用户
-        time    (int)                   : 评论发出时间的时间戳
-        root    (int)                   : 根评论ID
-        parent  (int)                   : 父评论ID
-        content (str)                   : 评论内容
-        emotes  (list[str])             : 评论表情
-    """
-
-    def __init__(self, raw_data: RawData):
-        """
-        Args:
-            raw_data    (RawData)   : API返回结果
-        """
-        self.rpid: int = raw_data["rpid"]
-        self.oid: int = raw_data["oid"]
-        self.otype: CommentResourceType = CommentResourceType(raw_data["type"])
-        self.user: bilibili_api.user.User = bilibili_api.user.User(raw_data["mid"])
-        self.time: int = raw_data["ctime"]
-        self.root: int = raw_data["root"]
-        self.parent: int = raw_data["parent"]
-        self.content: str = raw_data["content"]["message"]
-        self.emotes: list[str] = []
-        if "emote" in raw_data["content"]:
-            self.emotes = list(raw_data["content"]["emote"].keys())
-
-    def __eq__(self, other):
-        """
-        根据rpid判断两条Reply是否相同
-        """
-        if type(other) == Reply:
-            return self.rpid == other.rpid
-        else:
-            return False
-
-    def __hash__(self):
-        return hash(self.rpid)
-
-    def serializable_reply(self):
-        """
-         转换本条评论为可被json储存的格式
-        """
-        return {
-            "rpid": self.rpid,
-            "oid": self.oid,
-            "otype": self.otype.name,
-            "user": self.user.get_uid(),
-            "time": self.time,
-            "root": self.root,
-            "parent": self.parent,
-            "content": self.content,
-            "emotes": self.emotes
-        }
+            return list(self.comment_storages)
