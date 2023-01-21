@@ -205,3 +205,40 @@ class UserStorage:
     def __hash__(self):
         return hash(self.uid)
 
+
+class UserFileInterface:
+    """
+    用户文件处理相关操作
+    """
+
+    def __init__(self, filepath: str = ""):
+        self.filepath = filepath
+        self.content = None
+
+    def load(self) -> list[UserStorage]:
+        with open(self.filepath, "r", encoding="utf-8") as f:
+            self.content = json.load(f)
+        return [UserStorage(usr_file=user) for user in self.content]
+
+    def dump(self, users: list[UserStorage]):
+        self.content = [
+            {
+                "uid": user.uid,
+                "name": user.name,
+                "sign": user.sign,
+                "level": user.level,
+                "vip": user.vip,
+                "tags": user.tags,
+                "pendant": user.pendant,
+                "nameplate": user.nameplate,
+                "sex": user.sex,
+                "birthday": user.birthday,
+                "school": user.school,
+                "profession": user.profession,
+                "official": user.official,
+                "followings": user.followings,
+                "fan_medals": user.fan_medals
+            }
+            for user in users]
+        with open(self.filepath, "w", encoding="utf-8") as f:
+            json.dump(self.content, f, indent=4, ensure_ascii=False)
