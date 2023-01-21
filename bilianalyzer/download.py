@@ -1,15 +1,14 @@
 import time
-from typing import Collection, NewType, Literal
+from typing import Collection, Literal, Sequence
 
 import bilibili_api
 from PySide6.QtCore import Signal
 from bilibili_api import sync, Credential
 from bilibili_api.comment import CommentResourceType
+from bilibili_api.user import User
 
 from exceptions import CheckingException
 from storage import CommentStorage, RawData
-
-
 
 
 class CommentDownloader:
@@ -78,8 +77,8 @@ class CommentDownloader:
         Returns:
             RawData: API返回结果
         """
-        return RawData(await bilibili_api.comment.get_comments(oid=self.oid, type_=self.otype, page_index=index,
-                                                               credential=self.credential))
+        return await bilibili_api.comment.get_comments(oid=self.oid, type_=self.otype,
+                                                       page_index=index, credential=self.credential)
 
     # TODO: 多协程同时下载
     def download(self):
@@ -97,8 +96,8 @@ class CommentDownloader:
             reply: RawData
             if raw["replies"] is not None:
                 for reply in raw["replies"]:
-                    if CommentStorage(reply) not in self.comment_storages:
-                        self.add_comment(CommentStorage(reply))
+                    if CommentStorage(raw_data=reply) not in self.comment_storages:
+                        self.add_comment(CommentStorage(raw_data=reply))
                 if self.progress_signal is not None:
                     self.progress_signal.emit(self.current_progress)
             time.sleep(1)
