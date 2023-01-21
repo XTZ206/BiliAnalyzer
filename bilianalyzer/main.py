@@ -19,7 +19,7 @@ from exceptions import CheckingException
 from log import LoggerSetup
 from signals import ui_signals
 from storage import CommentFileInterface
-from ui.ui_about import Ui_AboutWiindow
+from ui.ui_about import Ui_AboutWindow
 from ui.ui_config import Ui_ConfigWindow
 from ui.ui_main import Ui_MainWindow
 from ui.ui_tutorial import Ui_TutorialWindow
@@ -394,7 +394,7 @@ class ConfigWindow(QWidget):
 class AboutWindow(QWidget):
     def __init__(self, main_window: MainWindow):
         super(AboutWindow, self).__init__()
-        self.ui = Ui_AboutWiindow()
+        self.ui = Ui_AboutWindow()
         self.ui.setupUi(self)
         self.main_window = main_window
         self.bind()
