@@ -132,3 +132,22 @@ class CommentDownloader:
             return sorted(self.comment_storages, key=key_func, reverse=reverse)
         else:
             return list(self.comment_storages)
+
+
+class UserDownloader:
+    def __init__(self, users: list[User], credential: Credential | None = None):
+        self.users: list[User] = users
+        self.credential: Credential | None = credential
+        if self.credential is not None:
+            for user in self.users:
+                user.credential = self.credential
+
+    async def get_raw_data(self, index: int) -> Sequence[RawData]:
+        user: User = self.users[index]
+        return (
+            await user.get_user_info(),
+            await user.get_all_followings(),
+            await user.get_user_medal()
+        )
+
+
