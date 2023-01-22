@@ -204,7 +204,6 @@ class MainWindow(QMainWindow):
                 self.ui.analyzeRunButton.setEnabled(True)
 
         try:
-
             self.read_file_path()
             cmtfile_interface = CommentFileInterface(self.cmtfile_path, "r")
             usrfile_interface = UserFileInterface(self.usrfile_path, "w")
@@ -212,12 +211,16 @@ class MainWindow(QMainWindow):
             comments = cmtfile_interface.load()
             uids = convert_comments_to_uids(comments)
             users = [User(uid) for uid in uids]
+            percentage = self.ui.analyzePercentageBox.value() / 100
+            users = users[::int(1 / percentage)] if percentage > 0 else []
             downloader = UserDownloader(users, credential=self.configer.credential,
                                         progress_signal=ui_signals.updateProgressBar)
 
             self.logger.info(f"开始分析 分析参数:\n"
-                             f"分析数量:{len(uids)}\n"
-                             f"预计用时:{int(len(uids) * 1.1)}")
+                             f"处理数量:{len(uids)}\n"
+                             f"筛选比例:{percentage}\n"
+                             f"分析数量:{len(users)}\n"
+                             f"预计用时:{int(len(users) * 1.1)}")
 
             thread = threading.Thread(target=analyze)
             thread.start()

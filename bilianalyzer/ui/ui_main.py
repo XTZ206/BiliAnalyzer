@@ -17,12 +17,12 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
 from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QComboBox,
-    QFrame, QGridLayout, QHBoxLayout, QHeaderView,
-    QLabel, QLineEdit, QMainWindow, QMenu,
-    QMenuBar, QProgressBar, QPushButton, QSizePolicy,
-    QSpacerItem, QSpinBox, QStatusBar, QTabWidget,
-    QTableWidget, QTableWidgetItem, QToolButton, QVBoxLayout,
-    QWidget)
+    QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
+    QHeaderView, QLabel, QLineEdit, QMainWindow,
+    QMenu, QMenuBar, QProgressBar, QPushButton,
+    QSizePolicy, QSpacerItem, QSpinBox, QStatusBar,
+    QTabWidget, QTableWidget, QTableWidgetItem, QToolButton,
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -256,35 +256,51 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.analyzeInfoLayout = QGridLayout()
         self.analyzeInfoLayout.setObjectName(u"analyzeInfoLayout")
-        self.analyzeCmtfileLabel = QLabel(self.analyzeTab)
-        self.analyzeCmtfileLabel.setObjectName(u"analyzeCmtfileLabel")
+        self.analyzeCmtfileInput = QLineEdit(self.analyzeTab)
+        self.analyzeCmtfileInput.setObjectName(u"analyzeCmtfileInput")
 
-        self.analyzeInfoLayout.addWidget(self.analyzeCmtfileLabel, 0, 0, 1, 1)
+        self.analyzeInfoLayout.addWidget(self.analyzeCmtfileInput, 0, 1, 1, 1)
 
         self.analyzeCmtfileButton = QToolButton(self.analyzeTab)
         self.analyzeCmtfileButton.setObjectName(u"analyzeCmtfileButton")
 
         self.analyzeInfoLayout.addWidget(self.analyzeCmtfileButton, 0, 2, 1, 1)
 
-        self.analyzeCmtfileInput = QLineEdit(self.analyzeTab)
-        self.analyzeCmtfileInput.setObjectName(u"analyzeCmtfileInput")
+        self.analyzePercentageUnit = QLabel(self.analyzeTab)
+        self.analyzePercentageUnit.setObjectName(u"analyzePercentageUnit")
 
-        self.analyzeInfoLayout.addWidget(self.analyzeCmtfileInput, 0, 1, 1, 1)
+        self.analyzeInfoLayout.addWidget(self.analyzePercentageUnit, 2, 2, 1, 1)
+
+        self.analyzeUsrfileLabel = QLabel(self.analyzeTab)
+        self.analyzeUsrfileLabel.setObjectName(u"analyzeUsrfileLabel")
+
+        self.analyzeInfoLayout.addWidget(self.analyzeUsrfileLabel, 1, 0, 1, 1)
 
         self.analyzeUsrfileButton = QToolButton(self.analyzeTab)
         self.analyzeUsrfileButton.setObjectName(u"analyzeUsrfileButton")
 
         self.analyzeInfoLayout.addWidget(self.analyzeUsrfileButton, 1, 2, 1, 1)
 
+        self.analyzeCmtfileLabel = QLabel(self.analyzeTab)
+        self.analyzeCmtfileLabel.setObjectName(u"analyzeCmtfileLabel")
+
+        self.analyzeInfoLayout.addWidget(self.analyzeCmtfileLabel, 0, 0, 1, 1)
+
+        self.analyzePercentageLabel = QLabel(self.analyzeTab)
+        self.analyzePercentageLabel.setObjectName(u"analyzePercentageLabel")
+
+        self.analyzeInfoLayout.addWidget(self.analyzePercentageLabel, 2, 0, 1, 1)
+
         self.analyzeUsrfileInput = QLineEdit(self.analyzeTab)
         self.analyzeUsrfileInput.setObjectName(u"analyzeUsrfileInput")
 
         self.analyzeInfoLayout.addWidget(self.analyzeUsrfileInput, 1, 1, 1, 1)
 
-        self.analyzeUsrfileLabel = QLabel(self.analyzeTab)
-        self.analyzeUsrfileLabel.setObjectName(u"analyzeUsrfileLabel")
+        self.analyzePercentageBox = QDoubleSpinBox(self.analyzeTab)
+        self.analyzePercentageBox.setObjectName(u"analyzePercentageBox")
+        self.analyzePercentageBox.setMaximum(100.000000000000000)
 
-        self.analyzeInfoLayout.addWidget(self.analyzeUsrfileLabel, 1, 0, 1, 1)
+        self.analyzeInfoLayout.addWidget(self.analyzePercentageBox, 2, 1, 1, 1)
 
 
         self.verticalLayout_5.addLayout(self.analyzeInfoLayout)
@@ -517,11 +533,13 @@ class Ui_MainWindow(object):
         self.downloadProgress.setFormat(QCoreApplication.translate("MainWindow", u"%p%", None))
         self.downloadRunButton.setText(QCoreApplication.translate("MainWindow", u"\u4e0b\u8f7d", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.downloadTab), QCoreApplication.translate("MainWindow", u"\u4e0b\u8f7d", None))
-        self.analyzeCmtfileLabel.setText(QCoreApplication.translate("MainWindow", u"\u8f93\u5165\u8bc4\u8bba\u6587\u4ef6", None))
         self.analyzeCmtfileButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.analyzeUsrfileButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.analyzeUsrfileInput.setText("")
+        self.analyzePercentageUnit.setText(QCoreApplication.translate("MainWindow", u"%", None))
         self.analyzeUsrfileLabel.setText(QCoreApplication.translate("MainWindow", u"\u8f93\u51fa\u7528\u6237\u6587\u4ef6", None))
+        self.analyzeUsrfileButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.analyzeCmtfileLabel.setText(QCoreApplication.translate("MainWindow", u"\u8f93\u5165\u8bc4\u8bba\u6587\u4ef6", None))
+        self.analyzePercentageLabel.setText(QCoreApplication.translate("MainWindow", u"\u7b5b\u9009\u6bd4\u4f8b", None))
+        self.analyzeUsrfileInput.setText("")
         self.analyzeExportButton.setText(QCoreApplication.translate("MainWindow", u"\u5bfc\u51faUID", None))
         self.analyzeRunButton.setText(QCoreApplication.translate("MainWindow", u"\u5f00\u59cb\u5206\u6790", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.analyzeTab), QCoreApplication.translate("MainWindow", u"\u5206\u6790", None))
