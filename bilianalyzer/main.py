@@ -158,10 +158,10 @@ class MainWindow(QMainWindow):
         # TODO: 优化检查结构
         # 检查下载准备是否完成
         try:
-            self.logger.debug(f"当前设置:\n"
-                              f"{str(self.configer)}")
             downloader.check_arguments()
-            self.configer.check_download_path()
+            if not os.path.exists(self.configer.config.result_path):
+                raise FileNotSelectedException("未指定下载路径")
+
             thread = threading.Thread(target=download)
             thread.start()
 
