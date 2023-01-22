@@ -1,10 +1,9 @@
+import base64
 import json
 import os
 
 from bilibili_api import Credential
 from bilibili_api.login import login_with_qrcode
-
-from bilianalyzer.exceptions import FileNotSelectedException
 
 
 class Config:
@@ -48,8 +47,7 @@ class Configer:
             self.config = Config()
 
         if os.path.exists("credential"):
-            with open("credential", "r", encoding="utf-8") as f:
-                self.credential = Credential(**(json.load(f)))
+            self.import_credential("credential")
         else:
             self.credential = Credential()
 
@@ -58,39 +56,47 @@ class Configer:
             json.dump({
                 "result_path": self.config.result_path
             }, f, indent=4, ensure_ascii=False)
-        with open("credential", "w", encoding="utf-8") as f:
-            json.dump({
-                "sessdata": self.credential.sessdata,
-                "bili_jct": self.credential.bili_jct,
-                "buvid3": self.credential.buvid3,
-                "dedeuserid": self.credential.dedeuserid
-            }, f, indent=4, ensure_ascii=False)
+        self.export_credential("credential")
 
     def import_credential(self, filepath):
-        with open(filepath, "r", encoding="utf-8") as f:
-            self.credential: Credential = Credential(**(json.load(f)))
+        file_interface = CredentialFileInterface(filepath)
+        content = file_interface.load()
+        self.credential: Credential = Credential(**(json.loads(content)))
 
     def export_credential(self, filepath):
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump({
-                "sessdata": self.credential.sessdata,
-                "bili_jct": self.credential.bili_jct,
-                "buvid3": self.credential.buvid3,
-                "dedeuserid": self.credential.dedeuserid
-            }, f, indent=4, ensure_ascii=False)
+        content = json.dumps({
+            "sessdata": self.credential.sessdata,
+            "bili_jct": self.credential.bili_jct,
+            "buvid3": self.credential.buvid3,
+            "dedeuserid": self.credential.dedeuserid
+        }, indent=4, ensure_ascii=False)
+
+        file_interface = CredentialFileInterface(filepath)
+        file_interface.dump(content)
 
     # TODO: 自定义扫码窗口
     def scan_credential(self):
         self.credential = login_with_qrcode()
-
-    def check_download_path(self):
-        if not os.path.exists(self.config.result_path):
-            raise FileNotSelectedException("未指定下载路径")
 
     def __str__(self):
         return json.dumps({
             "result_path": self.config.result_path,
             "sessdata": self.credential.sessdata,
             "bili_jct": self.credential.bili_jct,
-            "buvid3": self.credential.buvid3
+            "buvid3": self.credential.buvid3,
+            "dedeuserid": self.credential.dedeuserid
         }, indent=4)
+
+
+class CredentialFileInterface:
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+    def load(self) -> str:
+        with open(self.filepath, "rb") as f:
+            content = base64.b64decode(f.read()).decode(encoding="utf-8")
+        return content
+
+    def dump(self, content: str):
+        with open(self.filepath, "wb") as f:
+            f.write(base64.b64encode(content.encode(encoding="utf-8")))
