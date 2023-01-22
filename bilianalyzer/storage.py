@@ -188,7 +188,7 @@ class UserStorage:
             self.nameplate: str = "无名牌"
             if raw_basic_info["nameplate"] is not None:
                 if raw_basic_info["nameplate"]["name"] != "":
-                    self.pendant = raw_basic_info["nameplate"]["name"]
+                    self.nameplate = raw_basic_info["nameplate"]["name"]
 
             # 解析用户隐私数据
             self.sex = raw_basic_info["sex"] \
