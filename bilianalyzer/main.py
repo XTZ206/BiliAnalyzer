@@ -89,16 +89,16 @@ class MainWindow(QMainWindow):
         call_msg_box(self, "复制成功", "information")
 
     def handle_download(self):
-        def get_info_ui():
-            oid = self.ui.idEntry.text()
+        def get_args_ui():
+            oid = self.ui.downloadOidInput.text()
             otype = {
                 "视频": CommentResourceType.VIDEO,
                 "动态": CommentResourceType.DYNAMIC,
                 "画册": CommentResourceType.DYNAMIC_DRAW
-            }[self.ui.typeBox.currentText()]
-            start = self.ui.startBox.value()
-            end = self.ui.endBox.value()
-            step = self.ui.stepBox.value()
+            }[self.ui.downloadOtypeInput.currentText()]
+            start = self.ui.downloadStartInput.value()
+            end = self.ui.downloadEndInput.value()
+            step = self.ui.downloadStepInput.value()
             indexes = range(start, end, step)
 
             return {
@@ -137,15 +137,15 @@ class MainWindow(QMainWindow):
             finally:
                 self.ui.downloadButton.setEnabled(True)
 
-        info = get_info_ui()
+        args = get_args_ui()
         credential = self.configer.credential
-        downloader = CommentDownloader(**info, credential=credential,
-                                       progress_signal=ui_signals.updateDownloadProgress)
+        downloader = CommentDownloader(**args, credential=credential,
+                                       progress_signal=ui_signals.updateProgressBar)
 
         self.logger.info(f"开始下载 下载参数:\n"
-                         f"资源ID:{info['oid']}\n"
-                         f"资源类型:{info['otype'].name}\n"
-                         f"索引范围:{info['indexes']}")
+                         f"资源ID:{args['oid']}\n"
+                         f"资源类型:{args['otype'].name}\n"
+                         f"索引范围:{args['indexes']}")
 
         # TODO: 优化检查结构
         # 检查下载准备是否完成
