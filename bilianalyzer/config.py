@@ -62,7 +62,8 @@ class Configer:
             json.dump({
                 "sessdata": self.credential.sessdata,
                 "bili_jct": self.credential.bili_jct,
-                "buvid3": self.credential.buvid3
+                "buvid3": self.credential.buvid3,
+                "dedeuserid": self.credential.dedeuserid
             }, f, indent=4, ensure_ascii=False)
 
     def import_credential(self, filepath):
@@ -74,7 +75,8 @@ class Configer:
             json.dump({
                 "sessdata": self.credential.sessdata,
                 "bili_jct": self.credential.bili_jct,
-                "buvid3": self.credential.buvid3
+                "buvid3": self.credential.buvid3,
+                "dedeuserid": self.credential.dedeuserid
             }, f, indent=4, ensure_ascii=False)
 
     # TODO: 自定义扫码窗口

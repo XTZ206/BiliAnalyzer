@@ -7,7 +7,7 @@ from collections import OrderedDict
 from typing import Callable, Literal
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QTableWidgetItem, \
-    QProgressBar, QHeaderView
+    QProgressBar, QHeaderView, QLineEdit
 from bilibili_api import Credential, ResponseCodeException
 from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
@@ -415,6 +415,7 @@ class ConfigWindow(QWidget):
         self.configer = self.main_window.configer
         self.bind()
         self.show_config()
+        self.revealing: bool = False  # 当前是否以直接显示Cookies
 
     def bind(self):
         self.ui.confirmButton.accepted.connect(self.confirm_accepted)
@@ -422,6 +423,7 @@ class ConfigWindow(QWidget):
         self.ui.credentialScanButton.clicked.connect(self.scan_credential)
         self.ui.credentialImportButton.clicked.connect(self.import_credential)
         self.ui.credentialExportButton.clicked.connect(self.export_credential)
+        self.ui.credentialRevealButton.clicked.connect(self.reveal_credential)
         self.ui.resultPathButton.clicked.connect(self.select_result_path)
 
     def show_config(self):
@@ -431,11 +433,13 @@ class ConfigWindow(QWidget):
         # 在UI上显示凭证
         credential = self.configer.credential
         if credential.sessdata is not None:
-            self.ui.sessdataEntry.setText(credential.sessdata)
+            self.ui.credentialSessdataInput.setText(credential.sessdata)
         if credential.bili_jct is not None:
-            self.ui.bilijctEntry.setText(credential.bili_jct)
+            self.ui.credentialBilijctInput.setText(credential.bili_jct)
         if credential.buvid3 is not None:
-            self.ui.buvid3Entry.setText(credential.buvid3)
+            self.ui.credentialBuvid3Input.setText(credential.buvid3)
+        if credential.dedeuserid is not None:
+            self.ui.credentialDedeuseridInput.setText(credential.dedeuserid)
 
     def read_config(self):
         # 从UI上读取设置
@@ -443,9 +447,9 @@ class ConfigWindow(QWidget):
 
         # 从UI上读取凭证
         self.configer.credential = Credential(
-            sessdata=self.ui.sessdataEntry.text() if self.ui.sessdataEntry.text() != "" else None,
-            bili_jct=self.ui.bilijctEntry.text() if self.ui.bilijctEntry.text() != "" else None,
-            buvid3=self.ui.buvid3Entry.text() if self.ui.buvid3Entry.text() != "" else None
+            sessdata=self.ui.credentialSessdataInput.text() if self.ui.credentialSessdataInput.text() != "" else None,
+            bili_jct=self.ui.credentialBilijctInput.text() if self.ui.credentialBilijctInput.text() != "" else None,
+            buvid3=self.ui.credentialBuvid3Input.text() if self.ui.credentialBuvid3Input.text() != "" else None
         )
 
     def confirm_accepted(self):
@@ -463,11 +467,13 @@ class ConfigWindow(QWidget):
 
         credential = self.configer.credential
         if credential.sessdata is not None:
-            self.ui.sessdataEntry.setText(credential.sessdata)
+            self.ui.credentialSessdataInput.setText(credential.sessdata)
         if credential.bili_jct is not None:
-            self.ui.bilijctEntry.setText(credential.bili_jct)
+            self.ui.credentialBilijctInput.setText(credential.bili_jct)
         if credential.buvid3 is not None:
-            self.ui.buvid3Entry.setText(credential.buvid3)
+            self.ui.credentialBuvid3Input.setText(credential.buvid3)
+        if credential.dedeuserid is not None:
+            self.ui.credentialDedeuseridInput.setText(credential.dedeuserid)
 
     def import_credential(self):
         try:
@@ -489,6 +495,19 @@ class ConfigWindow(QWidget):
             return
         else:
             self.configer.export_credential(filepath)
+
+    def reveal_credential(self):
+        self.revealing = not self.revealing
+        if self.revealing:
+            self.ui.credentialSessdataInput.setEchoMode(QLineEdit.Normal)
+            self.ui.credentialBilijctInput.setEchoMode(QLineEdit.Normal)
+            self.ui.credentialBuvid3Input.setEchoMode(QLineEdit.Normal)
+            self.ui.credentialDedeuseridInput.setEchoMode(QLineEdit.Normal)
+        else:
+            self.ui.credentialSessdataInput.setEchoMode(QLineEdit.Password)
+            self.ui.credentialBilijctInput.setEchoMode(QLineEdit.Password)
+            self.ui.credentialBuvid3Input.setEchoMode(QLineEdit.Password)
+            self.ui.credentialDedeuseridInput.setEchoMode(QLineEdit.Password)
 
     def select_result_path(self):
         filepath = QFileDialog.getExistingDirectory(self)
