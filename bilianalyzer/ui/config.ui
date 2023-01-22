@@ -276,6 +276,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>resultPathInput</tabstop>
+  <tabstop>resultPathButton</tabstop>
+  <tabstop>credentialScanButton</tabstop>
+  <tabstop>credentialImportButton</tabstop>
+  <tabstop>credentialExportButton</tabstop>
+  <tabstop>credentialRevealButton</tabstop>
+  <tabstop>credentialSessdataInput</tabstop>
+  <tabstop>credentialBilijctInput</tabstop>
+  <tabstop>credentialBuvid3Input</tabstop>
+  <tabstop>credentialDedeuseridInput</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

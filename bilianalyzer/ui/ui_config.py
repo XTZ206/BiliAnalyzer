@@ -174,6 +174,15 @@ class Ui_ConfigWindow(object):
 
         self.verticalLayout.addLayout(self.confirmLayout)
 
+        QWidget.setTabOrder(self.resultPathInput, self.resultPathButton)
+        QWidget.setTabOrder(self.resultPathButton, self.credentialScanButton)
+        QWidget.setTabOrder(self.credentialScanButton, self.credentialImportButton)
+        QWidget.setTabOrder(self.credentialImportButton, self.credentialExportButton)
+        QWidget.setTabOrder(self.credentialExportButton, self.credentialRevealButton)
+        QWidget.setTabOrder(self.credentialRevealButton, self.credentialSessdataInput)
+        QWidget.setTabOrder(self.credentialSessdataInput, self.credentialBilijctInput)
+        QWidget.setTabOrder(self.credentialBilijctInput, self.credentialBuvid3Input)
+        QWidget.setTabOrder(self.credentialBuvid3Input, self.credentialDedeuseridInput)
 
         self.retranslateUi(ConfigWindow)
 
