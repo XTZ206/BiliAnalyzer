@@ -1,6 +1,6 @@
 from bilibili_api import bvid2aid, aid2bvid
 
-from storage import CommentStorage
+from bilianalyzer.storage import CommentStorage
 
 
 def convert_video_id(sid: str) -> str:

@@ -6,7 +6,7 @@ from PySide6.QtCore import Signal
 from bilibili_api import sync
 from bilibili_api.user import User
 
-from storage import UserStorage
+from bilianalyzer.storage import UserStorage
 
 
 class StatisticsMode(Enum):

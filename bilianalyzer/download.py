@@ -8,8 +8,8 @@ from bilibili_api import sync, Credential
 from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
 
-from exceptions import CheckingException
-from storage import CommentStorage, RawData, UserStorage
+from bilianalyzer.exceptions import CheckingException
+from bilianalyzer.storage import CommentStorage, RawData, UserStorage
 
 
 class CommentDownloader:

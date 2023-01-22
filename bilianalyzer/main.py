@@ -12,18 +12,18 @@ from bilibili_api import Credential, ResponseCodeException
 from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
 
-from config import Configer, Config
-from convert import convert_video_id, convert_comments_to_uids
-from download import CommentDownloader, UserDownloader
-from exceptions import CheckingException, FileNotSelectedException
-from log import LoggerSetup
-from signals import ui_signals
-from statistics import Statistician, StatisticsMode
-from storage import CommentFileInterface, UidFileInterface, UserFileInterface, ResultFileInterface
-from ui.ui_about import Ui_AboutWindow
-from ui.ui_config import Ui_ConfigWindow
-from ui.ui_main import Ui_MainWindow
-from ui.ui_tutorial import Ui_TutorialWindow
+from bilianalyzer.config import Configer, Config
+from bilianalyzer.convert import convert_video_id, convert_comments_to_uids
+from bilianalyzer.download import CommentDownloader, UserDownloader
+from bilianalyzer.exceptions import CheckingException, FileNotSelectedException
+from bilianalyzer.log import LoggerSetup
+from bilianalyzer.signals import ui_signals
+from bilianalyzer.statistics import Statistician, StatisticsMode
+from bilianalyzer.storage import CommentFileInterface, UidFileInterface, UserFileInterface, ResultFileInterface
+from bilianalyzer.ui.ui_about import Ui_AboutWindow
+from bilianalyzer.ui.ui_config import Ui_ConfigWindow
+from bilianalyzer.ui.ui_main import Ui_MainWindow
+from bilianalyzer.ui.ui_tutorial import Ui_TutorialWindow
 
 
 class MainWindow(QMainWindow):

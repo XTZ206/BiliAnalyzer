@@ -6,7 +6,7 @@ from typing import TypeAlias, Sequence, Literal
 from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
 
-from exceptions import FileNotSelectedException, StorageException, FileModeException
+from bilianalyzer.exceptions import FileNotSelectedException, StorageException, FileModeException
 
 RawData: TypeAlias = list | dict  # API返回结果
 
