@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'config_window.ui'
+## Form generated from reading UI file 'config.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.4.2
 ##
@@ -15,7 +15,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QDialogButtonBox,
+from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialogButtonBox, QFrame,
     QGridLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QSizePolicy, QSpacerItem, QToolButton,
     QVBoxLayout, QWidget)
@@ -30,150 +30,124 @@ class Ui_ConfigWindow(object):
         ConfigWindow.setWindowIcon(icon)
         self.verticalLayout = QVBoxLayout(ConfigWindow)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.downloadLayout = QHBoxLayout()
-        self.downloadLayout.setObjectName(u"downloadLayout")
-        self.downloadLabel = QLabel(ConfigWindow)
-        self.downloadLabel.setObjectName(u"downloadLabel")
+        self.resultPathLayout = QHBoxLayout()
+        self.resultPathLayout.setObjectName(u"resultPathLayout")
+        self.resultPathLabel = QLabel(ConfigWindow)
+        self.resultPathLabel.setObjectName(u"resultPathLabel")
         font = QFont()
         font.setPointSize(14)
-        self.downloadLabel.setFont(font)
+        self.resultPathLabel.setFont(font)
 
-        self.downloadLayout.addWidget(self.downloadLabel)
+        self.resultPathLayout.addWidget(self.resultPathLabel)
 
-        self.downloadEntry = QLineEdit(ConfigWindow)
-        self.downloadEntry.setObjectName(u"downloadEntry")
-        self.downloadEntry.setFont(font)
+        self.resultPathInput = QLineEdit(ConfigWindow)
+        self.resultPathInput.setObjectName(u"resultPathInput")
+        self.resultPathInput.setFont(font)
 
-        self.downloadLayout.addWidget(self.downloadEntry)
+        self.resultPathLayout.addWidget(self.resultPathInput)
 
-        self.downloadTool = QToolButton(ConfigWindow)
-        self.downloadTool.setObjectName(u"downloadTool")
-        self.downloadTool.setFont(font)
+        self.resultPathButton = QToolButton(ConfigWindow)
+        self.resultPathButton.setObjectName(u"resultPathButton")
+        self.resultPathButton.setFont(font)
 
-        self.downloadLayout.addWidget(self.downloadTool)
-
-
-        self.verticalLayout.addLayout(self.downloadLayout)
-
-        self.logLayout = QHBoxLayout()
-        self.logLayout.setObjectName(u"logLayout")
-        self.logCheckBox = QCheckBox(ConfigWindow)
-        self.logCheckBox.setObjectName(u"logCheckBox")
-        self.logCheckBox.setFont(font)
-
-        self.logLayout.addWidget(self.logCheckBox)
-
-        self.logSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        self.logLayout.addItem(self.logSpacer)
+        self.resultPathLayout.addWidget(self.resultPathButton)
 
 
-        self.verticalLayout.addLayout(self.logLayout)
+        self.verticalLayout.addLayout(self.resultPathLayout)
 
-        self.logpathLayout = QHBoxLayout()
-        self.logpathLayout.setObjectName(u"logpathLayout")
-        self.logpathLabel = QLabel(ConfigWindow)
-        self.logpathLabel.setObjectName(u"logpathLabel")
-        self.logpathLabel.setFont(font)
+        self.configLine_1 = QFrame(ConfigWindow)
+        self.configLine_1.setObjectName(u"configLine_1")
+        self.configLine_1.setFrameShape(QFrame.HLine)
+        self.configLine_1.setFrameShadow(QFrame.Sunken)
 
-        self.logpathLayout.addWidget(self.logpathLabel)
+        self.verticalLayout.addWidget(self.configLine_1)
 
-        self.logpathEntry = QLineEdit(ConfigWindow)
-        self.logpathEntry.setObjectName(u"logpathEntry")
-        self.logpathEntry.setEnabled(False)
-        self.logpathEntry.setFont(font)
-
-        self.logpathLayout.addWidget(self.logpathEntry)
-
-        self.logpathTool = QToolButton(ConfigWindow)
-        self.logpathTool.setObjectName(u"logpathTool")
-        self.logpathTool.setEnabled(False)
-        self.logpathTool.setFont(font)
-
-        self.logpathLayout.addWidget(self.logpathTool)
-
-
-        self.verticalLayout.addLayout(self.logpathLayout)
-
-        self.credentialGrid = QGridLayout()
-        self.credentialGrid.setObjectName(u"credentialGrid")
-        self.buvid3Entry = QLineEdit(ConfigWindow)
-        self.buvid3Entry.setObjectName(u"buvid3Entry")
-        self.buvid3Entry.setFont(font)
-
-        self.credentialGrid.addWidget(self.buvid3Entry, 3, 1, 1, 1)
-
-        self.sessdataLabel = QLabel(ConfigWindow)
-        self.sessdataLabel.setObjectName(u"sessdataLabel")
-        self.sessdataLabel.setFont(font)
-
-        self.credentialGrid.addWidget(self.sessdataLabel, 1, 0, 1, 1)
-
-        self.bilijctEntry = QLineEdit(ConfigWindow)
-        self.bilijctEntry.setObjectName(u"bilijctEntry")
-        self.bilijctEntry.setFont(font)
-
-        self.credentialGrid.addWidget(self.bilijctEntry, 2, 1, 1, 1)
-
-        self.credentialLayout = QHBoxLayout()
+        self.credentialLayout = QGridLayout()
         self.credentialLayout.setObjectName(u"credentialLayout")
         self.credentialLabel = QLabel(ConfigWindow)
         self.credentialLabel.setObjectName(u"credentialLabel")
         self.credentialLabel.setFont(font)
 
-        self.credentialLayout.addWidget(self.credentialLabel)
+        self.credentialLayout.addWidget(self.credentialLabel, 0, 0, 1, 1)
 
-        self.scanButton = QPushButton(ConfigWindow)
-        self.scanButton.setObjectName(u"scanButton")
-        self.scanButton.setFont(font)
+        self.credentialControlLayout = QHBoxLayout()
+        self.credentialControlLayout.setObjectName(u"credentialControlLayout")
+        self.credentialScanButton = QPushButton(ConfigWindow)
+        self.credentialScanButton.setObjectName(u"credentialScanButton")
+        self.credentialScanButton.setFont(font)
 
-        self.credentialLayout.addWidget(self.scanButton)
+        self.credentialControlLayout.addWidget(self.credentialScanButton)
 
-        self.importButton = QPushButton(ConfigWindow)
-        self.importButton.setObjectName(u"importButton")
-        self.importButton.setFont(font)
+        self.credentialImportButton = QPushButton(ConfigWindow)
+        self.credentialImportButton.setObjectName(u"credentialImportButton")
+        self.credentialImportButton.setFont(font)
 
-        self.credentialLayout.addWidget(self.importButton)
+        self.credentialControlLayout.addWidget(self.credentialImportButton)
 
-        self.exportButton = QPushButton(ConfigWindow)
-        self.exportButton.setObjectName(u"exportButton")
-        self.exportButton.setFont(font)
+        self.credentialExportButton = QPushButton(ConfigWindow)
+        self.credentialExportButton.setObjectName(u"credentialExportButton")
+        self.credentialExportButton.setFont(font)
 
-        self.credentialLayout.addWidget(self.exportButton)
+        self.credentialControlLayout.addWidget(self.credentialExportButton)
+
+        self.credentialShowButton = QPushButton(ConfigWindow)
+        self.credentialShowButton.setObjectName(u"credentialShowButton")
+        self.credentialShowButton.setFont(font)
+
+        self.credentialControlLayout.addWidget(self.credentialShowButton)
 
 
-        self.credentialGrid.addLayout(self.credentialLayout, 0, 0, 1, 2)
+        self.credentialLayout.addLayout(self.credentialControlLayout, 0, 1, 1, 1)
 
-        self.bilijctLabel = QLabel(ConfigWindow)
-        self.bilijctLabel.setObjectName(u"bilijctLabel")
-        self.bilijctLabel.setFont(font)
+        self.sessdataLabel = QLabel(ConfigWindow)
+        self.sessdataLabel.setObjectName(u"sessdataLabel")
+        self.sessdataLabel.setFont(font)
 
-        self.credentialGrid.addWidget(self.bilijctLabel, 2, 0, 1, 1)
+        self.credentialLayout.addWidget(self.sessdataLabel, 1, 0, 1, 1)
 
         self.sessdataEntry = QLineEdit(ConfigWindow)
         self.sessdataEntry.setObjectName(u"sessdataEntry")
         self.sessdataEntry.setFont(font)
 
-        self.credentialGrid.addWidget(self.sessdataEntry, 1, 1, 1, 1)
+        self.credentialLayout.addWidget(self.sessdataEntry, 1, 1, 1, 1)
+
+        self.bilijctLabel = QLabel(ConfigWindow)
+        self.bilijctLabel.setObjectName(u"bilijctLabel")
+        self.bilijctLabel.setFont(font)
+
+        self.credentialLayout.addWidget(self.bilijctLabel, 2, 0, 1, 1)
+
+        self.bilijctEntry = QLineEdit(ConfigWindow)
+        self.bilijctEntry.setObjectName(u"bilijctEntry")
+        self.bilijctEntry.setFont(font)
+        self.bilijctEntry.setEchoMode(QLineEdit.Password)
+
+        self.credentialLayout.addWidget(self.bilijctEntry, 2, 1, 1, 1)
 
         self.buvid3Label = QLabel(ConfigWindow)
         self.buvid3Label.setObjectName(u"buvid3Label")
         self.buvid3Label.setFont(font)
 
-        self.credentialGrid.addWidget(self.buvid3Label, 3, 0, 1, 1)
+        self.credentialLayout.addWidget(self.buvid3Label, 3, 0, 1, 1)
+
+        self.buvid3Entry = QLineEdit(ConfigWindow)
+        self.buvid3Entry.setObjectName(u"buvid3Entry")
+        self.buvid3Entry.setFont(font)
+
+        self.credentialLayout.addWidget(self.buvid3Entry, 3, 1, 1, 1)
 
 
-        self.verticalLayout.addLayout(self.credentialGrid)
+        self.verticalLayout.addLayout(self.credentialLayout)
 
-        self.verticalSpacer = QSpacerItem(20, 62, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.configSpacer = QSpacerItem(20, 62, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.verticalLayout.addItem(self.verticalSpacer)
+        self.verticalLayout.addItem(self.configSpacer)
 
         self.confirmLayout = QHBoxLayout()
         self.confirmLayout.setObjectName(u"confirmLayout")
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.confirmSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.confirmLayout.addItem(self.horizontalSpacer)
+        self.confirmLayout.addItem(self.confirmSpacer)
 
         self.confirmButton = QDialogButtonBox(ConfigWindow)
         self.confirmButton.setObjectName(u"confirmButton")
@@ -187,25 +161,22 @@ class Ui_ConfigWindow(object):
 
 
         self.retranslateUi(ConfigWindow)
-        self.logCheckBox.clicked["bool"].connect(self.logpathEntry.setEnabled)
-        self.logCheckBox.clicked["bool"].connect(self.logpathTool.setEnabled)
 
         QMetaObject.connectSlotsByName(ConfigWindow)
     # setupUi
 
     def retranslateUi(self, ConfigWindow):
         ConfigWindow.setWindowTitle(QCoreApplication.translate("ConfigWindow", u"\u8bbe\u7f6e", None))
-        self.downloadLabel.setText(QCoreApplication.translate("ConfigWindow", u"\u4e0b\u8f7d\u8def\u5f84", None))
-        self.downloadTool.setText(QCoreApplication.translate("ConfigWindow", u"...", None))
-        self.logCheckBox.setText(QCoreApplication.translate("ConfigWindow", u"\u4fdd\u5b58\u65e5\u5fd7", None))
-        self.logpathLabel.setText(QCoreApplication.translate("ConfigWindow", u"\u65e5\u5fd7\u8def\u5f84", None))
-        self.logpathTool.setText(QCoreApplication.translate("ConfigWindow", u"...", None))
-        self.sessdataLabel.setText(QCoreApplication.translate("ConfigWindow", u"sessdata", None))
+        self.resultPathLabel.setText(QCoreApplication.translate("ConfigWindow", u"\u8f93\u51fa\u8def\u5f84", None))
+        self.resultPathButton.setText(QCoreApplication.translate("ConfigWindow", u"...", None))
         self.credentialLabel.setText(QCoreApplication.translate("ConfigWindow", u"\u51ed\u8bc1", None))
-        self.scanButton.setText(QCoreApplication.translate("ConfigWindow", u"\u626b\u7801\u5bfc\u5165", None))
-        self.importButton.setText(QCoreApplication.translate("ConfigWindow", u"\u5bfc\u5165\u51ed\u8bc1", None))
-        self.exportButton.setText(QCoreApplication.translate("ConfigWindow", u"\u5bfc\u51fa\u51ed\u8bc1", None))
+        self.credentialScanButton.setText(QCoreApplication.translate("ConfigWindow", u"\u626b\u7801\u5bfc\u5165", None))
+        self.credentialImportButton.setText(QCoreApplication.translate("ConfigWindow", u"\u5bfc\u5165\u51ed\u8bc1", None))
+        self.credentialExportButton.setText(QCoreApplication.translate("ConfigWindow", u"\u5bfc\u51fa\u51ed\u8bc1", None))
+        self.credentialShowButton.setText(QCoreApplication.translate("ConfigWindow", u"\u663e\u793a\u51ed\u8bc1", None))
+        self.sessdataLabel.setText(QCoreApplication.translate("ConfigWindow", u"sessdata", None))
         self.bilijctLabel.setText(QCoreApplication.translate("ConfigWindow", u"bili_jct", None))
+        self.bilijctEntry.setText("")
         self.buvid3Label.setText(QCoreApplication.translate("ConfigWindow", u"buvid3", None))
     # retranslateUi
 
