@@ -311,15 +311,14 @@ class MainWindow(QMainWindow):
         filepath, filetype = QFileDialog.getSaveFileName(self, filter="json文件(*.json)")
         if filepath == "":
             return
-        elif os.path.exists(filepath):
-            self.read_file_path()
-            uidfile_path = filepath
-            cmtfile_interface = CommentFileInterface(self.cmtfile_path, "r")
-            uidfile_interface = UidFileInterface(uidfile_path, "w")
+        self.read_file_path()
+        uidfile_path = filepath
+        cmtfile_interface = CommentFileInterface(self.cmtfile_path, "r")
+        uidfile_interface = UidFileInterface(uidfile_path, "w")
 
-            comments = cmtfile_interface.load()
-            uids = convert_comments_to_uids(comments)
-            uidfile_interface.dump(uids)
+        comments = cmtfile_interface.load()
+        uids = convert_comments_to_uids(comments)
+        uidfile_interface.dump(uids)
 
     def export_statistics_resfile(self):
         if self.statistics_result is None:
