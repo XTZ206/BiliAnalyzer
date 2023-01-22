@@ -12,24 +12,16 @@ class Config:
     设置处理 相关操作
 
     Attributes:
-        download_path   (str | None, optional)  : 下载路径.Defaults to None.
-        save_log        (bool | None, optional) : 是否保存日志.Defaults to None.
-        log_path        (str | None, optional)  : 日志路径.Defaults to None.
+        result_path         (str)       : 结果保存路径.
     """
 
-    def __init__(self,
-                 download_path: str | None = None,
-                 save_log: bool | None = None,
-                 log_path: str | None = None):
+    def __init__(self, result_path: str | None = None):
         """
         Args:
-            download_path       (str | None, optional)  : 下载路径.Defaults to None.
-            save_log            (bool | None, optional) : 是否保存日志.Defaults to None.
-            log_path            (str | None, optional)  : 日志路径.Defaults to None.
+            result_path     (str | None, optional)  : 结果保存路径.Defaults to None.
+
         """
-        self.download_path = "" if download_path is None else download_path
-        self.save_log = False if save_log is None else save_log
-        self.log_path = "" if save_log is None else log_path
+        self.result_path = result_path if result_path is not None else ""
 
 
 class Configer:
@@ -64,9 +56,7 @@ class Configer:
     def dump_to_file(self):
         with open("config.json", "w", encoding="utf-8") as f:
             json.dump({
-                "download_path": self.config.download_path,
-                "save_log": self.config.save_log,
-                "log_path": self.config.log_path
+                "result_path": self.config.result_path
             }, f, indent=4, ensure_ascii=False)
         with open("credential", "w", encoding="utf-8") as f:
             json.dump({
@@ -92,19 +82,13 @@ class Configer:
         self.credential = login_with_qrcode()
 
     def check_download_path(self):
-        if not os.path.exists(self.config.download_path):
+        if not os.path.exists(self.config.result_path):
             raise FileNotSelectedException("未指定下载路径")
-
-    def check_log_path(self):
-        if not os.path.exists(self.config.log_path) and self.config.save_log:
-            raise FileNotSelectedException("未指定日志路径")
 
     def __str__(self):
         return json.dumps({
-            "download_path": self.config.download_path,
-            "save_log": self.config.save_log,
-            "log_path": self.config.log_path,
+            "result_path": self.config.result_path,
             "sessdata": self.credential.sessdata,
             "bili_jct": self.credential.bili_jct,
             "buvid3": self.credential.buvid3
-        })
+        }, indent=4)

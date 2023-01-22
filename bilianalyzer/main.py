@@ -284,25 +284,19 @@ class ConfigWindow(QWidget):
         self.configer = self.main_window.configer
         self.bind()
         self.show_config()
-        self.show_credential()
 
     def bind(self):
         self.ui.confirmButton.accepted.connect(self.confirm_accepted)
         self.ui.confirmButton.rejected.connect(self.confirm_rejected)
-        self.ui.scanButton.clicked.connect(self.scan_credential)
-        self.ui.importButton.clicked.connect(self.import_credential)
-        self.ui.exportButton.clicked.connect(self.export_credential)
-        self.ui.downloadTool.clicked.connect(self.select_download_path)
-        self.ui.logpathTool.clicked.connect(self.select_log_path)
+        self.ui.credentialScanButton.clicked.connect(self.scan_credential)
+        self.ui.credentialImportButton.clicked.connect(self.import_credential)
+        self.ui.credentialExportButton.clicked.connect(self.export_credential)
+        self.ui.resultPathButton.clicked.connect(self.select_result_path)
 
     def show_config(self):
         # 在UI上显示设置
-        self.ui.downloadEntry.setText(self.configer.config.download_path)
-        self.ui.logCheckBox.setChecked(self.configer.config.save_log)
-        self.ui.logpathEntry.setText(self.configer.config.log_path)
-        self.ui.logpathEntry.setEnabled(self.ui.logCheckBox.isChecked())
+        self.ui.resultPathInput.setText(self.configer.config.result_path)
 
-    def show_credential(self):
         # 在UI上显示凭证
         credential = self.configer.credential
         if credential.sessdata is not None:
@@ -314,13 +308,8 @@ class ConfigWindow(QWidget):
 
     def read_config(self):
         # 从UI上读取设置
-        self.configer.config = Config(
-            download_path=self.ui.downloadEntry.text(),
-            save_log=self.ui.logCheckBox.isChecked(),
-            log_path=self.ui.logpathEntry.text()
-        )
+        self.configer.config = Config(result_path=self.ui.resultPathInput.text())
 
-    def read_credential(self):
         # 从UI上读取凭证
         self.configer.credential = Credential(
             sessdata=self.ui.sessdataEntry.text() if self.ui.sessdataEntry.text() != "" else None,
@@ -330,17 +319,9 @@ class ConfigWindow(QWidget):
 
     def confirm_accepted(self):
         self.read_config()
-        self.read_credential()
         self.main_window.logger.debug(f"当前设置:\n"
                                       f"{str(self.configer)}")
-        try:
-            self.configer.check_log_path()
-        except FileNotFoundError as error:
-            call_msg_box(self, str(error))
-            return
-
         self.configer.dump_to_file()
-
         self.close()
 
     def confirm_rejected(self):
@@ -363,31 +344,25 @@ class ConfigWindow(QWidget):
             if os.path.exists(filepath):
                 self.configer.import_credential(filepath)
             elif filepath == "":
-                pass
+                return
         except FileNotFoundError:
             call_msg_box(self, "文件不存在")
         except (TypeError | ValueError):
             call_msg_box(self, "文件格式错误")
-        self.show_credential()
+        self.show_config()
 
     def export_credential(self):
         filepath, filetype = QFileDialog.getSaveFileName(self)
-        self.read_credential()
+        self.read_config()
         if filepath == "":
-            pass
+            return
         else:
             self.configer.export_credential(filepath)
 
-    def select_download_path(self):
+    def select_result_path(self):
         filepath = QFileDialog.getExistingDirectory(self)
         if filepath != "":
-            self.configer.config.download_path = filepath
-        self.show_config()
-
-    def select_log_path(self):
-        filepath = QFileDialog.getExistingDirectory(self)
-        if filepath != "":
-            self.configer.config.log_path = filepath
+            self.configer.config.result_path = filepath
         self.show_config()
 
 
