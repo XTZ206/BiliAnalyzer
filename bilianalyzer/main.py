@@ -331,12 +331,14 @@ class MainWindow(QMainWindow):
         self.logger.info(f"保存完毕 保存位置: {filepath}")
 
     def select_analyze_cmtfile(self):
+        self.read_file_path()
         filepath, filetype = QFileDialog.getOpenFileName(self, filter="cmt文件(*.cmt)")
         if os.path.exists(filepath):
             self.cmtfile_path = filepath
         self.show_file_path()
 
     def select_analyze_usrfile(self):
+        self.read_file_path()
         filepath, filetype = QFileDialog.getSaveFileName(self, filter="usr文件(*.usr)")
         self.usrfile_path = filepath
         self.show_file_path()
