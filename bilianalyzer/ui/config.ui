@@ -115,7 +115,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="credentialShowButton">
+        <widget class="QPushButton" name="credentialRevealButton">
          <property name="font">
           <font>
            <pointsize>14</pointsize>
@@ -129,7 +129,7 @@
       </layout>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="sessdataLabel">
+      <widget class="QLabel" name="credentialSessdataLabel">
        <property name="font">
         <font>
          <pointsize>14</pointsize>
@@ -141,16 +141,19 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="sessdataEntry">
+      <widget class="QLineEdit" name="credentialSessdataInput">
        <property name="font">
         <font>
          <pointsize>14</pointsize>
         </font>
        </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="bilijctLabel">
+      <widget class="QLabel" name="credentialBilijctLabel">
        <property name="font">
         <font>
          <pointsize>14</pointsize>
@@ -162,7 +165,7 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QLineEdit" name="bilijctEntry">
+      <widget class="QLineEdit" name="credentialBilijctInput">
        <property name="font">
         <font>
          <pointsize>14</pointsize>
@@ -177,7 +180,7 @@
       </widget>
      </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="buvid3Label">
+      <widget class="QLabel" name="credentialBuvid3Label">
        <property name="font">
         <font>
          <pointsize>14</pointsize>
@@ -189,11 +192,41 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QLineEdit" name="buvid3Entry">
+      <widget class="QLineEdit" name="credentialBuvid3Input">
        <property name="font">
         <font>
          <pointsize>14</pointsize>
         </font>
+       </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="credentialDedeuseridLabel">
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>dedeuserid</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="credentialDedeuseridInput">
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
        </property>
       </widget>
      </item>

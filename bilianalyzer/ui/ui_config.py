@@ -90,51 +90,66 @@ class Ui_ConfigWindow(object):
 
         self.credentialControlLayout.addWidget(self.credentialExportButton)
 
-        self.credentialShowButton = QPushButton(ConfigWindow)
-        self.credentialShowButton.setObjectName(u"credentialShowButton")
-        self.credentialShowButton.setFont(font)
+        self.credentialRevealButton = QPushButton(ConfigWindow)
+        self.credentialRevealButton.setObjectName(u"credentialRevealButton")
+        self.credentialRevealButton.setFont(font)
 
-        self.credentialControlLayout.addWidget(self.credentialShowButton)
+        self.credentialControlLayout.addWidget(self.credentialRevealButton)
 
 
         self.credentialLayout.addLayout(self.credentialControlLayout, 0, 1, 1, 1)
 
-        self.sessdataLabel = QLabel(ConfigWindow)
-        self.sessdataLabel.setObjectName(u"sessdataLabel")
-        self.sessdataLabel.setFont(font)
+        self.credentialSessdataLabel = QLabel(ConfigWindow)
+        self.credentialSessdataLabel.setObjectName(u"credentialSessdataLabel")
+        self.credentialSessdataLabel.setFont(font)
 
-        self.credentialLayout.addWidget(self.sessdataLabel, 1, 0, 1, 1)
+        self.credentialLayout.addWidget(self.credentialSessdataLabel, 1, 0, 1, 1)
 
-        self.sessdataEntry = QLineEdit(ConfigWindow)
-        self.sessdataEntry.setObjectName(u"sessdataEntry")
-        self.sessdataEntry.setFont(font)
+        self.credentialSessdataInput = QLineEdit(ConfigWindow)
+        self.credentialSessdataInput.setObjectName(u"credentialSessdataInput")
+        self.credentialSessdataInput.setFont(font)
+        self.credentialSessdataInput.setEchoMode(QLineEdit.Password)
 
-        self.credentialLayout.addWidget(self.sessdataEntry, 1, 1, 1, 1)
+        self.credentialLayout.addWidget(self.credentialSessdataInput, 1, 1, 1, 1)
 
-        self.bilijctLabel = QLabel(ConfigWindow)
-        self.bilijctLabel.setObjectName(u"bilijctLabel")
-        self.bilijctLabel.setFont(font)
+        self.credentialBilijctLabel = QLabel(ConfigWindow)
+        self.credentialBilijctLabel.setObjectName(u"credentialBilijctLabel")
+        self.credentialBilijctLabel.setFont(font)
 
-        self.credentialLayout.addWidget(self.bilijctLabel, 2, 0, 1, 1)
+        self.credentialLayout.addWidget(self.credentialBilijctLabel, 2, 0, 1, 1)
 
-        self.bilijctEntry = QLineEdit(ConfigWindow)
-        self.bilijctEntry.setObjectName(u"bilijctEntry")
-        self.bilijctEntry.setFont(font)
-        self.bilijctEntry.setEchoMode(QLineEdit.Password)
+        self.credentialBilijctInput = QLineEdit(ConfigWindow)
+        self.credentialBilijctInput.setObjectName(u"credentialBilijctInput")
+        self.credentialBilijctInput.setFont(font)
+        self.credentialBilijctInput.setEchoMode(QLineEdit.Password)
 
-        self.credentialLayout.addWidget(self.bilijctEntry, 2, 1, 1, 1)
+        self.credentialLayout.addWidget(self.credentialBilijctInput, 2, 1, 1, 1)
 
-        self.buvid3Label = QLabel(ConfigWindow)
-        self.buvid3Label.setObjectName(u"buvid3Label")
-        self.buvid3Label.setFont(font)
+        self.credentialBuvid3Label = QLabel(ConfigWindow)
+        self.credentialBuvid3Label.setObjectName(u"credentialBuvid3Label")
+        self.credentialBuvid3Label.setFont(font)
 
-        self.credentialLayout.addWidget(self.buvid3Label, 3, 0, 1, 1)
+        self.credentialLayout.addWidget(self.credentialBuvid3Label, 3, 0, 1, 1)
 
-        self.buvid3Entry = QLineEdit(ConfigWindow)
-        self.buvid3Entry.setObjectName(u"buvid3Entry")
-        self.buvid3Entry.setFont(font)
+        self.credentialBuvid3Input = QLineEdit(ConfigWindow)
+        self.credentialBuvid3Input.setObjectName(u"credentialBuvid3Input")
+        self.credentialBuvid3Input.setFont(font)
+        self.credentialBuvid3Input.setEchoMode(QLineEdit.Password)
 
-        self.credentialLayout.addWidget(self.buvid3Entry, 3, 1, 1, 1)
+        self.credentialLayout.addWidget(self.credentialBuvid3Input, 3, 1, 1, 1)
+
+        self.credentialDedeuseridLabel = QLabel(ConfigWindow)
+        self.credentialDedeuseridLabel.setObjectName(u"credentialDedeuseridLabel")
+        self.credentialDedeuseridLabel.setFont(font)
+
+        self.credentialLayout.addWidget(self.credentialDedeuseridLabel, 4, 0, 1, 1)
+
+        self.credentialDedeuseridInput = QLineEdit(ConfigWindow)
+        self.credentialDedeuseridInput.setObjectName(u"credentialDedeuseridInput")
+        self.credentialDedeuseridInput.setFont(font)
+        self.credentialDedeuseridInput.setEchoMode(QLineEdit.Password)
+
+        self.credentialLayout.addWidget(self.credentialDedeuseridInput, 4, 1, 1, 1)
 
 
         self.verticalLayout.addLayout(self.credentialLayout)
@@ -173,10 +188,12 @@ class Ui_ConfigWindow(object):
         self.credentialScanButton.setText(QCoreApplication.translate("ConfigWindow", u"\u626b\u7801\u5bfc\u5165", None))
         self.credentialImportButton.setText(QCoreApplication.translate("ConfigWindow", u"\u5bfc\u5165\u51ed\u8bc1", None))
         self.credentialExportButton.setText(QCoreApplication.translate("ConfigWindow", u"\u5bfc\u51fa\u51ed\u8bc1", None))
-        self.credentialShowButton.setText(QCoreApplication.translate("ConfigWindow", u"\u663e\u793a\u51ed\u8bc1", None))
-        self.sessdataLabel.setText(QCoreApplication.translate("ConfigWindow", u"sessdata", None))
-        self.bilijctLabel.setText(QCoreApplication.translate("ConfigWindow", u"bili_jct", None))
-        self.bilijctEntry.setText("")
-        self.buvid3Label.setText(QCoreApplication.translate("ConfigWindow", u"buvid3", None))
+        self.credentialRevealButton.setText(QCoreApplication.translate("ConfigWindow", u"\u663e\u793a\u51ed\u8bc1", None))
+        self.credentialSessdataLabel.setText(QCoreApplication.translate("ConfigWindow", u"sessdata", None))
+        self.credentialBilijctLabel.setText(QCoreApplication.translate("ConfigWindow", u"bili_jct", None))
+        self.credentialBilijctInput.setText("")
+        self.credentialBuvid3Label.setText(QCoreApplication.translate("ConfigWindow", u"buvid3", None))
+        self.credentialDedeuseridLabel.setText(QCoreApplication.translate("ConfigWindow", u"dedeuserid", None))
+        self.credentialDedeuseridInput.setText("")
     # retranslateUi
 
