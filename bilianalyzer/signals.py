@@ -4,10 +4,10 @@ from PySide6.QtCore import Signal, QObject
 
 
 class UiSignals(QObject):
-    updateDownloadProgress = Signal(int)
-    updateAnalyzeProgress = Signal(int)
+    updateProgressBar = Signal(int, str)
+    setProgressBar = Signal(int, str)
     callErrorBox = Signal(Exception)
-    showAnalyzeResult = Signal(OrderedDict, list[str])
+    showStatisticsResult = Signal(OrderedDict, list)
 
 
 ui_signals = UiSignals()
