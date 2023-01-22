@@ -22,7 +22,7 @@ class CommentDownloader:
         indexes             (Collection[int])               : 下载索引范围
         is_checked          (bool)                          : 是否已检查参数
         credential          (Credential | None, optional)   : 凭据. Defaults to None.
-        comment_storages    (set[CommentStorage])           : 评论存储, 使用set去重
+        comment_storages    (set[CommentStorage])           : 评论存储, 无重复
         current_progress    (int)                           : 当前进度
         maximum_progress    (int)                           : 最大进度
         progress_signal     (Signal | None, optional)       : 进度条信号. Defaults to None.
@@ -97,26 +97,24 @@ class CommentDownloader:
             reply: RawData
             if raw["replies"] is not None:
                 for reply in raw["replies"]:
-                    if CommentStorage(raw_data=reply) not in self.comment_storages:
-                        self.add_comment(CommentStorage(raw_data=reply))
-                if self.progress_signal is not None:
-                    self.progress_signal.emit(self.current_progress)
+                    self.add_comment(CommentStorage(raw_data=reply))
+            if self.progress_signal is not None:
+                self.progress_signal.emit(self.current_progress, "下载")
             time.sleep(1)
 
-    def add_comment(self, comment_storage: "CommentStorage") -> None:
+    def add_comment(self, comment_storage: CommentStorage) -> None:
         """
         添加评论到内置评论存储
         Args:
             comment_storage   (CommentStorage) : 添加的评论
         """
-        if comment_storage not in self.comment_storages:
-            self.comment_storages.add(comment_storage)
+        self.comment_storages.add(comment_storage)
 
     def output_comments(self,
                         key: Literal["rpid", "user", "time"] | None = None,
-                        reverse: bool = False) -> list["CommentStorage"]:
+                        reverse: bool = False) -> list[CommentStorage]:
         """
-        排序后
+        排序后输出评论列表
         Args:
             key     (Literal["rpid", "user", "time"] | None)    : 评论排序方式
             reverse (bool)                                      : 是否倒序
