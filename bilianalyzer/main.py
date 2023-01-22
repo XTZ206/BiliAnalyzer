@@ -444,11 +444,20 @@ class ConfigWindow(QWidget):
         # 从UI上读取设置
         self.configer.config = Config(result_path=self.ui.resultPathInput.text())
 
+        sessdata = self.ui.credentialSessdataInput.text() \
+            if self.ui.credentialSessdataInput.text() != "" else None
+        bili_jct = self.ui.credentialBilijctInput.text() \
+            if self.ui.credentialBilijctInput.text() != "" else None
+        buvid3 = self.ui.credentialBuvid3Input.text() if self.ui.credentialBuvid3Input.text() != "" else None
+        dedeuserid = self.ui.credentialDedeuseridInput.text() \
+            if self.ui.credentialDedeuseridInput.text() != "" else None
+
         # 从UI上读取凭证
         self.configer.credential = Credential(
-            sessdata=self.ui.credentialSessdataInput.text() if self.ui.credentialSessdataInput.text() != "" else None,
-            bili_jct=self.ui.credentialBilijctInput.text() if self.ui.credentialBilijctInput.text() != "" else None,
-            buvid3=self.ui.credentialBuvid3Input.text() if self.ui.credentialBuvid3Input.text() != "" else None
+            sessdata=sessdata,
+            bili_jct=bili_jct,
+            buvid3=buvid3,
+            dedeuserid=dedeuserid
         )
 
     def confirm_accepted(self):
