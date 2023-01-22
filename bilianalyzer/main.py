@@ -138,7 +138,12 @@ class MainWindow(QMainWindow):
                 self.show_file_path()
 
             except (ResponseCodeException, CheckingException) as download_error:
-                self.logger.warning(f"下载失败 失败原因:\n"
+                if downloader.current_progress < 1:
+                    error_location = "0"
+                else:
+                    error_location = download_error.users[downloader.current_progress - 1]
+                self.logger.warning(f"下载失败 错误位置:{error_location}\n"
+                                    f"失败原因:\n"
                                     f"{str(download_error)}")
                 ui_signals.callErrorBox.emit(download_error)
 
@@ -153,7 +158,9 @@ class MainWindow(QMainWindow):
         self.logger.info(f"开始下载 下载参数:\n"
                          f"资源ID:{args['oid']}\n"
                          f"资源类型:{args['otype'].name}\n"
-                         f"索引范围:{args['indexes']}")
+                         f"索引范围:{args['indexes']}\n"
+                         f"下载数量:{len(args['indexes'])}\n"
+                         f"预计用时:{int(len(args['indexes']) * 1.1)}")
 
         # TODO: 优化检查结构
         # 检查下载准备是否完成
@@ -185,7 +192,12 @@ class MainWindow(QMainWindow):
                 self.logger.info(f"保存完毕 保存位置:{usrfile_interface.filepath}")
 
             except ResponseCodeException as analyze_error:
-                self.logger.warning(f"分析失败 失败原因:\n"
+                if downloader.current_progress < 1:
+                    error_location = "0"
+                else:
+                    error_location = downloader.users[downloader.current_progress - 1].get_uid()
+                self.logger.warning(f"分析失败 错误位置:{error_location}\n"
+                                    f"失败原因:\n"
                                     f"{str(analyze_error)}")
                 ui_signals.callErrorBox.emit(analyze_error)
             finally:
@@ -202,6 +214,10 @@ class MainWindow(QMainWindow):
             users = [User(uid) for uid in uids]
             downloader = UserDownloader(users, credential=self.configer.credential,
                                         progress_signal=ui_signals.updateProgressBar)
+
+            self.logger.info(f"开始分析 分析参数:\n"
+                             f"分析数量:{len(uids)}\n"
+                             f"预计用时:{int(len(uids) * 1.1)}")
 
             thread = threading.Thread(target=analyze)
             thread.start()
@@ -234,10 +250,15 @@ class MainWindow(QMainWindow):
                 if statistics_show_mode == "UID模式":
                     ui_signals.updateProgressBar.emit(100, "统计")
 
-            except ResponseCodeException as analyze_error:
-                self.logger.warning(f"统计失败 失败原因:\n"
-                                    f"{str(analyze_error)}")
-                ui_signals.callErrorBox.emit(analyze_error)
+            except ResponseCodeException as statistics_error:
+                if statistician.current_progress < 1:
+                    error_location = "0"
+                else:
+                    error_location = statistician.users[statistician.current_progress - 1]
+                self.logger.warning(f"统计失败 错误位置:{error_location}\n"
+                                    f"失败原因:\n"
+                                    f"{str(statistics_error)}")
+                ui_signals.callErrorBox.emit(statistics_error)
 
             finally:
                 self.ui.statisticsRunButton.setEnabled(True)
