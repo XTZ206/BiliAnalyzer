@@ -9,7 +9,7 @@ from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
 
 from exceptions import CheckingException
-from storage import CommentStorage, RawData
+from storage import CommentStorage, RawData, UserStorage
 
 
 class CommentDownloader:
@@ -133,12 +133,29 @@ class CommentDownloader:
 
 
 class UserDownloader:
-    def __init__(self, users: list[User], credential: Credential | None = None):
+    """
+    Attributes:
+        users               (list[User])                    : 需要下载数据的用户
+        credential          (Credential | None, optional)   : 凭据. Defaults to None
+        user_storages       (set[UserStorage])              : 用户存储, 无重复
+        current_progress    (int)                           : 当前进度
+        maximum_progress    (int)                           : 最大进度
+        progress_signal     (Signal | None)       : 更新进度条的信号
+    """
+
+    def __init__(self, users: list[User],
+                 credential: Credential | None = None,
+                 progress_signal: Signal | None = None):
         self.users: list[User] = users
         self.credential: Credential | None = credential
         if self.credential is not None:
             for user in self.users:
                 user.credential = self.credential
+        self.user_storages: set[UserStorage] = set()
+
+        self.current_progress: int = 0
+        self.maximum_progress: int = len(self.users)
+        self.progress_signal: Signal | None = progress_signal
 
     async def get_raw_data(self, index: int) -> Sequence[RawData]:
         user: User = self.users[index]
@@ -147,6 +164,37 @@ class UserDownloader:
             await user.get_all_followings(),
             await user.get_user_medal()
         )
+
+    def download(self):
+        for index in range(len(self.users)):
+            self.current_progress = index + 1
+            coroutine = self.get_raw_data(index)
+            self.add_user(UserStorage(raw_data=sync(coroutine)))
+
+            if self.progress_signal is not None:
+                self.progress_signal.emit(self.current_progress, "分析")
+            time.sleep(1)
+
+    def add_user(self, user_storage: UserStorage) -> None:
+        """
+        添加用户到内置用户存储
+        Args:
+            user_storage    (CommentStorage)    : 添加的用户
+        """
+        self.user_storages.add(user_storage)
+
+    def output_users(self,
+                     key: Literal["uid", "name", "level"] | None = None,
+                     reverse: bool = False):
+        if key is not None:
+            key_func = {
+                "uid": lambda usr_st: usr_st.uid,
+                "name": lambda usr_st: usr_st.name,
+                "level": lambda usr_st: usr_st.level,
+            }[key]  # 对应排序方式的处理函数
+            return sorted(self.user_storages, key=key_func, reverse=reverse)
+        else:
+            return list(self.user_storages)
 
 
 if __name__ == '__main__':
