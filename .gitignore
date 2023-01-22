@@ -18,7 +18,6 @@ bilianalyzer.log
 # Build
 build/
 dist/
-*.spec
 
 # Releases
 releases/
