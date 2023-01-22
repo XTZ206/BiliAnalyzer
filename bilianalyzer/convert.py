@@ -1,9 +1,6 @@
-import json
-
 from bilibili_api import bvid2aid, aid2bvid
-from bilibili_api.user import User
 
-from exceptions import FileFormatException
+from storage import CommentStorage
 
 
 def convert_video_id(sid: str) -> str:
@@ -37,23 +34,16 @@ def convert_video_id(sid: str) -> str:
         raise ValueError("输入的值格式错误\nBV号必须带有前缀")
 
 
-def convert_cmtfile_to_users(cmtfile: str) -> list[User]:
+def convert_comments_to_uids(comments: list[CommentStorage]) -> list[int]:
     """
-
+    从评论列表中提取用户列表
     Args:
-        cmtfile     (str)   : 评论文件路径
+        comments    (list[CommentStorage])   : 评论列表
 
     Returns:
-        list[User]: 转换得到的用户列表 无重复
+        list[int]: 转换得到的用户列表 无重复
     """
-    with open(cmtfile, "r", encoding="utf-8") as f:
-        comments = json.load(f)
-
-    try:
-        uids: set[int] = set()
-        for comment in comments:
-            uids.add(comment["user"])
-        return [User(uid) for uid in uids]
-
-    except KeyError:
-        raise FileFormatException("文件格式错误")
+    uids = set()
+    for comment in comments:
+        uids.add(comment.user.get_uid())
+    return list(uids)
