@@ -1,12 +1,16 @@
+import logging
 import time
 from collections import OrderedDict
 from enum import Enum
 
+import jieba
 from PySide6.QtCore import Signal
 from bilibili_api import sync
 from bilibili_api.user import User
 
-from bilianalyzer.storage import UserStorage
+from bilianalyzer.storage import UserStorage, CommentStorage
+
+jieba.setLogLevel(logging.INFO)
 
 
 class StatisticsMode(Enum):
@@ -22,14 +26,17 @@ class StatisticsMode(Enum):
     PROFESSION = 10
     FOLLOWING = 11
     FAN_MEDALS = 12
+    CONTENT = 13
+    EMOTES = 14
 
 
-class Statistician:
+class UsersStatistician:
     def __init__(self, users: list[UserStorage],
                  progress_signal: Signal | None,
                  maximum_signal: Signal | None):
 
         self.users = users
+        self.data = self.users
         self.current_progress = 0
         self.maximum_progress = 0
         self.progress_signal = progress_signal
@@ -79,14 +86,17 @@ class Statistician:
                 for user in self.users:
                     results.setdefault(user.sex, 0)
                     results[user.sex] += 1
+
             case StatisticsMode.BIRTHDAY:
                 for user in self.users:
                     results.setdefault(user.birthday, 0)
                     results[user.birthday] += 1
+
             case StatisticsMode.SCHOOL:
                 for user in self.users:
                     results.setdefault(user.school, 0)
                     results[user.school] += 1
+
             case StatisticsMode.PROFESSION:
                 for user in self.users:
                     results.setdefault(user.profession, 0)
@@ -114,11 +124,11 @@ class Statistician:
         if output_name and \
                 mode in (StatisticsMode.FOLLOWING, StatisticsMode.FAN_MEDALS):
             uids = list(results.keys())
-            names = self.get_users_name(uids)
+            names = self.get_uids_name(uids)
             results = OrderedDict([(names[i], results[uids[i]]) for i in range(len(names))])
         return results
 
-    def get_users_name(self, uids: list[int]):
+    def get_uids_name(self, uids: list[int]):
         self.maximum_progress = len(uids)
         if self.maximum_signal is not None:
             self.maximum_signal.emit(self.maximum_progress, "统计")
@@ -136,3 +146,45 @@ class Statistician:
                 self.progress_signal.emit(self.current_progress, "统计")
             time.sleep(1)
         return names
+
+
+class CommentsStatistician:
+    def __init__(self, comments: list[CommentStorage],
+                 progress_signal: Signal | None,
+                 maximum_signal: Signal | None):
+
+        self.comments = comments
+        self.data = self.comments
+        self.current_progress = 0
+        self.maximum_progress = 0
+        self.progress_signal = progress_signal
+        self.maximum_signal = maximum_signal
+
+    def statistics(self, mode: StatisticsMode,
+                   tops: int = 0) \
+            -> OrderedDict[str | int, int]:
+        results = OrderedDict()
+
+        match mode:
+
+            case StatisticsMode.CONTENT:
+                for comment in self.comments:
+                    words = jieba.cut(comment.content)
+                    for word in words:
+                        results.setdefault(word, 0)
+                        results[word] += 1
+            case StatisticsMode.EMOTES:
+                for comment in self.comments:
+                    emotes = comment.emotes
+                    for emote in emotes:
+                        results.setdefault(emote, 0)
+                        results[emote] += 1
+
+            case default:
+                raise ValueError(f"统计模式错误, 不存在的模式{default}")
+
+        results = OrderedDict(sorted(results.items(), key=lambda item: item[1], reverse=True))
+        if tops:
+            results = OrderedDict(list(results.items())[:tops]) if 0 < tops < len(results) else results
+
+        return results
