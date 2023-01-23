@@ -250,7 +250,7 @@ class MainWindow(QMainWindow):
                 end_time = int(time.time())
                 self.logger.info(f"统计完成 用时{end_time - start_time}秒 共统计用户{len(statistician.users)}名")
                 self.statistics_result = statistics_result
-                if statistics_show_mode == "UID模式":
+                if statistics_show_mode == "标准模式":
                     ui_signals.updateProgressBar.emit(100, "统计")
 
             except ResponseCodeException as statistics_error:
@@ -303,7 +303,7 @@ class MainWindow(QMainWindow):
                 "评论者粉丝牌": ["粉丝牌", "出现次数"]
             }[self.ui.statisticsModeBox.currentText()]
             statistics_show_mode = {
-                False: "UID模式",
+                False: "标准模式",
                 True: "昵称模式"
             }[self.ui.statisticsShowModeBox.isChecked()]
 
