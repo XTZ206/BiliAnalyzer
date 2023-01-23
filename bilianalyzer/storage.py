@@ -1,12 +1,9 @@
-import json
-import os
-from collections import OrderedDict
-from typing import TypeAlias, Sequence, Literal
+from typing import TypeAlias, Sequence
 
 from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
 
-from bilianalyzer.exceptions import FileNotSelectedException, StorageException, FileModeException
+from bilianalyzer.exceptions import StorageException
 
 RawData: TypeAlias = list | dict  # API返回结果
 
@@ -70,70 +67,6 @@ class CommentStorage:
 
     def __hash__(self):
         return hash(self.rpid)
-
-
-class CommentFileInterface:
-    """
-    评论文件处理相关操作
-    """
-
-    def __init__(self, filepath: str, mode: Literal["r", "w"]):
-        self.filepath = filepath
-        self.mode = mode
-        if self.mode == "r" and not os.path.exists(self.filepath):
-            raise FileNotSelectedException("未指定评论文件")
-        self.content = None
-
-    def load(self) -> list[CommentStorage]:
-        if self.mode != "r":
-            raise FileModeException("只能以读取模式读取文件")
-        with open(self.filepath, "r", encoding="utf-8") as f:
-            self.content = json.load(f)
-        return [CommentStorage(cmt_file=comment) for comment in self.content]
-
-    def dump(self, comments: list[CommentStorage]):
-        if self.mode != "w":
-            raise FileModeException("只能以写入模式写入文件")
-        self.content = [
-            {
-                "rpid": comment.rpid,
-                "oid": comment.oid,
-                "otype": comment.otype.name,
-                "user": comment.user.get_uid(),
-                "time": comment.time,
-                "root": comment.root,
-                "parent": comment.parent,
-                "content": comment.content,
-                "emotes": comment.emotes
-            }
-            for comment in comments]
-        with open(self.filepath, "w", encoding="utf-8") as f:
-            json.dump(self.content, f, indent=4, ensure_ascii=False)
-
-
-class UidFileInterface:
-    """UID文件处理相关操作"""
-
-    def __init__(self, filepath: str, mode: Literal["r", "w"]):
-        self.filepath = filepath
-        self.mode = mode
-        if self.mode == "r" and not os.path.exists(self.filepath):
-            raise FileNotSelectedException("未指定UID文件")
-        self.content = None
-
-    def load(self) -> list[int]:
-        if self.mode != "r":
-            raise FileModeException("只能以读取模式读取文件")
-        with open(self.filepath, "r", encoding="utf-8") as f:
-            self.content = json.load(f)
-        return self.content
-
-    def dump(self, uids: list[int]):
-        if self.mode != "w":
-            raise FileModeException("只能以写入模式写入文件")
-        self.content = uids
-        with open(self.filepath, "w", encoding="utf-8") as f:
-            json.dump(self.content, f, indent=4, ensure_ascii=False)
 
 
 class UserStorage:
@@ -260,74 +193,5 @@ class UserStorage:
     def __hash__(self):
         return hash(self.uid)
 
-
-class UserFileInterface:
-    """
-    用户文件处理相关操作
-    """
-
-    def __init__(self, filepath: str, mode: Literal["r", "w"]):
-        self.filepath = filepath
-        self.mode = mode
-        if self.mode == "r" and not os.path.exists(self.filepath):
-            raise FileNotSelectedException("未指定用户文件")
-        self.content = None
-
-    def load(self) -> list[UserStorage]:
-        if self.mode != "r":
-            raise FileModeException("只能以读取模式读取文件")
-        with open(self.filepath, "r", encoding="utf-8") as f:
-            self.content = json.load(f)
-        return [UserStorage(usr_file=user) for user in self.content]
-
-    def dump(self, users: list[UserStorage]):
-        if self.mode != "w":
-            raise FileModeException("只能以写入模式写入文件")
-        self.content = [
-            {
-                "uid": user.uid,
-                "name": user.name,
-                "sign": user.sign,
-                "level": user.level,
-                "vip": user.vip,
-                "tags": user.tags,
-                "pendant": user.pendant,
-                "nameplate": user.nameplate,
-                "sex": user.sex,
-                "birthday": user.birthday,
-                "school": user.school,
-                "profession": user.profession,
-                "official": user.official,
-                "followings": user.followings,
-                "fan_medals": user.fan_medals
-            }
-            for user in users]
-        with open(self.filepath, "w", encoding="utf-8") as f:
-            json.dump(self.content, f, indent=4, ensure_ascii=False)
-
-
-class ResultFileInterface:
-    """
-    结果文件处理相关操作
-    """
-
-    def __init__(self, filepath: str, mode: Literal["r", "w"]):
-        self.filepath = filepath
-        self.mode = mode
-        if self.mode == "r" and not os.path.exists(self.filepath):
-            raise FileNotSelectedException("未指定结果文件")
-        self.content = None
-
-    def load(self) -> OrderedDict[str, int]:
-        if self.mode != "r":
-            raise FileModeException("只能以读取模式读取文件")
-        with open(self.filepath, "r", encoding="utf-8") as f:
-            self.content = json.load(f)
-        return OrderedDict(self.content)
-
-    def dump(self, results: OrderedDict[str, int]):
-        if self.mode != "w":
-            raise FileModeException("只能以写入模式写入文件")
-        self.content = results
-        with open(self.filepath, "w", encoding="utf-8") as f:
-            json.dump(self.content, f, indent=4, ensure_ascii=False)
+    def __str__(self):
+        return self.uid
