@@ -140,7 +140,7 @@ class UserDownloader:
         user_storages       (set[UserStorage])              : 用户存储, 无重复
         current_progress    (int)                           : 当前进度
         maximum_progress    (int)                           : 最大进度
-        progress_signal     (Signal | None)       : 更新进度条的信号
+        progress_signal     (Signal | None)                 : 更新进度条的信号
     """
 
     def __init__(self, users: list[User],
