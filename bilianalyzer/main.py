@@ -57,12 +57,15 @@ class MainWindow(QMainWindow):
         self.ui.downloadRunButton.clicked.connect(self.handle_download)
 
         # 分析页
+        self.ui.analyzeCmtfileInput.textEdited.connect(self.read_file_path)
+        self.ui.analyzeUsrfileInput.textEdited.connect(self.read_file_path)
         self.ui.analyzeCmtfileButton.clicked.connect(self.select_analyze_cmtfile)
         self.ui.analyzeUsrfileButton.clicked.connect(self.select_analyze_usrfile)
         self.ui.analyzeExportButton.clicked.connect(self.export_analyze_uidfile)
         self.ui.analyzeRunButton.clicked.connect(self.handle_analyze)
 
         # 统计页
+        self.ui.statisticsFileInput.textEdited.connect(self.read_file_path)
         self.ui.statisticsFileButton.clicked.connect(self.select_statistics_srcfile)
         self.ui.statisticsRunButton.clicked.connect(self.handle_statistics)
         self.ui.statisticsExportButton.clicked.connect(self.export_statistics_resfile)
@@ -191,6 +194,8 @@ class MainWindow(QMainWindow):
 
                 pipe_out.dump(downloader.output_users(key="uid"))
                 self.logger.info(f"保存完毕 保存位置:{pipe_out.filepath}")
+                self.srcfile_path = self.usrfile_path
+                self.show_file_path()
 
             except (ResponseCodeException, AnalyzerException) as analyze_error:
                 if downloader.current_progress < 1:
@@ -206,6 +211,10 @@ class MainWindow(QMainWindow):
 
         try:
             self.read_file_path()
+
+            if self.cmtfile_path == "" or self.usrfile_path == "":
+                raise FileNotSelectedException("请选择输入和输出的文件路径")
+
             pipe_in = CmtFilePipe(self.cmtfile_path, "r")
             pipe_out = UsrFilePipe(self.usrfile_path, "w")
 
