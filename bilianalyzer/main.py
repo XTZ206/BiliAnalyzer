@@ -15,11 +15,11 @@ from bilibili_api.user import User
 from bilianalyzer.config import Configer, Config
 from bilianalyzer.convert import convert_video_id, convert_comments_to_uids
 from bilianalyzer.download import CommentDownloader, UserDownloader
-from bilianalyzer.exceptions import CheckingException, FileNotSelectedException
+from bilianalyzer.exceptions import FileNotSelectedException, AnalyzerException
 from bilianalyzer.log import LoggerSetup
+from bilianalyzer.pipes import CmtFilePipe, UidFilePipe, UsrFilePipe, ResFilePipe
 from bilianalyzer.signals import ui_signals
-from bilianalyzer.statistics import Statistician, StatisticsMode
-from bilianalyzer.storage import CommentFileInterface, UidFileInterface, UserFileInterface, ResultFileInterface
+from bilianalyzer.statistics import StatisticsMode, UsersStatistician, CommentsStatistician
 from bilianalyzer.ui.ui_about import Ui_AboutWindow
 from bilianalyzer.ui.ui_config import Ui_ConfigWindow
 from bilianalyzer.ui.ui_main import Ui_MainWindow
@@ -66,6 +66,7 @@ class MainWindow(QMainWindow):
         self.ui.statisticsFileButton.clicked.connect(self.select_statistics_srcfile)
         self.ui.statisticsRunButton.clicked.connect(self.handle_statistics)
         self.ui.statisticsExportButton.clicked.connect(self.export_statistics_resfile)
+        self.ui.statisticsTypeBox.currentIndexChanged.connect(self.show_statistics_property)
 
         # 菜单栏
         self.ui.actionQuit.triggered.connect(sys.exit)
@@ -129,15 +130,15 @@ class MainWindow(QMainWindow):
                 os.makedirs(result_path, exist_ok=True)
 
                 # 保存文件
-                file_interface = CommentFileInterface(cmtfile_path, "w")
-                file_interface.dump(downloader.output_comments(key="rpid"))
+                pipe = CmtFilePipe(cmtfile_path, "w")
+                pipe.dump(downloader.output_comments(key="rpid"))
                 self.logger.info(f"保存完毕 保存位置:{cmtfile_path}")
 
                 # 自动将下载的评论文件传入统计模块
                 self.cmtfile_path = cmtfile_path
                 self.show_file_path()
 
-            except (ResponseCodeException, CheckingException) as download_error:
+            except (ResponseCodeException, AnalyzerException) as download_error:
                 if downloader.current_progress < 1:
                     error_location = "0"
                 else:
@@ -172,7 +173,7 @@ class MainWindow(QMainWindow):
             thread = threading.Thread(target=download)
             thread.start()
 
-        except (ValueError, FileNotSelectedException) as error:
+        except (ValueError, AnalyzerException) as error:
             call_msg_box(self, str(error))
             self.logger.warning(str(error))
 
@@ -188,10 +189,10 @@ class MainWindow(QMainWindow):
                 end_time = int(time.time())
                 self.logger.info(f"分析完毕 用时{end_time - start_time}秒")
 
-                usrfile_interface.dump(downloader.output_users(key="uid"))
-                self.logger.info(f"保存完毕 保存位置:{usrfile_interface.filepath}")
+                pipe_out.dump(downloader.output_users(key="uid"))
+                self.logger.info(f"保存完毕 保存位置:{pipe_out.filepath}")
 
-            except ResponseCodeException as analyze_error:
+            except (ResponseCodeException, AnalyzerException) as analyze_error:
                 if downloader.current_progress < 1:
                     error_location = "0"
                 else:
@@ -205,10 +206,10 @@ class MainWindow(QMainWindow):
 
         try:
             self.read_file_path()
-            cmtfile_interface = CommentFileInterface(self.cmtfile_path, "r")
-            usrfile_interface = UserFileInterface(self.usrfile_path, "w")
+            pipe_in = CmtFilePipe(self.cmtfile_path, "r")
+            pipe_out = UsrFilePipe(self.usrfile_path, "w")
 
-            comments = cmtfile_interface.load()
+            comments = pipe_in.load()
             uids = convert_comments_to_uids(comments)
             users = [User(uid) for uid in uids]
             percentage = self.ui.analyzePercentageBox.value() / 100
@@ -225,7 +226,7 @@ class MainWindow(QMainWindow):
             thread = threading.Thread(target=analyze)
             thread.start()
 
-        except FileNotSelectedException as error:
+        except AnalyzerException as error:
             call_msg_box(self, str(error))
 
         else:
@@ -236,28 +237,80 @@ class MainWindow(QMainWindow):
     def handle_statistics(self):
         # TODO: 优化加载顺序
         # TODO: 可调tops值
+        def get_args_ui():
+
+            statistics_type = self.ui.statisticsTypeBox.currentText()
+            statistics_property = self.ui.statisticsPropertyBox.currentText()
+            statistics_show = {
+                False: "标准模式",
+                True: "昵称模式"
+            }[self.ui.statisticsShowBox.isChecked()]
+            statistics_mode = {
+                "用户性别": StatisticsMode.SEX,
+                "用户生日": StatisticsMode.BIRTHDAY,
+                "用户学校": StatisticsMode.SCHOOL,
+                "用户专业": StatisticsMode.PROFESSION,
+                "用户UID位数": StatisticsMode.UID,
+                "用户等级": StatisticsMode.LEVEL,
+                "用户大会员": StatisticsMode.VIP,
+                "用户标签": StatisticsMode.TAGS,
+                "用户装扮": StatisticsMode.PENDANT,
+                "用户名牌": StatisticsMode.NAMEPLATE,
+                "用户关注": StatisticsMode.FOLLOWING,
+                "用户粉丝牌": StatisticsMode.FAN_MEDALS,
+                "评论内容": StatisticsMode.CONTENT,
+                "评论表情": StatisticsMode.EMOTES,
+            }[statistics_type + statistics_property]
+            statistics_headers = {
+                "用户性别": ["性别", "出现次数"],
+                "用户生日": ["生日", "出现次数"],
+                "用户学校": ["学校", "出现次数"],
+                "用户专业": ["专业", "出现次数"],
+                "用户UID位数": ["UID位数", "出现次数"],
+                "用户等级": ["等级", "出现次数"],
+                "用户大会员": ["大会员", "出现次数"],
+                "用户标签": ["标签", "出现次数"],
+                "用户装扮": ["装扮", "出现次数"],
+                "用户名牌": ["名牌", "出现次数"],
+                "用户关注": ["关注", "出现次数"],
+                "用户粉丝牌": ["粉丝牌", "出现次数"],
+                "评论内容": ["内容", "出现次数"],
+                "评论表情": ["表情", "出现次数"]
+            }[statistics_type + statistics_property]
+
+            return {
+                "type": statistics_type,
+                "property": statistics_property,
+                "show": statistics_show,
+                "mode": statistics_mode,
+                "headers": statistics_headers
+            }
 
         def statistics():
             try:
-                self.logger.info(f"统计开始 统计参数:\n"
-                                 f"统计模式:{statistics_mode.name}\n"
-                                 f"显示模式:{statistics_show_mode}")
                 start_time = int(time.time())
-                statistics_result: OrderedDict = \
-                    statistician.statistics(statistics_mode, tops=100,
-                                            output_name=(statistics_show_mode == "昵称模式"))
-                ui_signals.showStatisticsResult.emit(statistics_result, statistics_headers)
+                if args["type"] == "用户":
+                    statistics_result: OrderedDict = \
+                        statistician.statistics(args["mode"], tops=100,
+                                                output_name=(args["show"] == "昵称模式"))
+                elif args["type"] == "评论":
+                    statistics_result: OrderedDict = \
+                        statistician.statistics(args["mode"], tops=100)
+                else:
+                    raise AnalyzerException(f"不存在的统计类型{args['type']}")
+
+                ui_signals.showStatisticsResult.emit(statistics_result, args["headers"])
                 end_time = int(time.time())
-                self.logger.info(f"统计完成 用时{end_time - start_time}秒 共统计用户{len(statistician.users)}名")
+                self.logger.info(f"统计完成 用时{end_time - start_time}秒 共统计数据{len(statistician.data)}条")
                 self.statistics_result = statistics_result
-                if statistics_show_mode == "UID模式":
+                if args["show"] == "标准模式":
                     ui_signals.updateProgressBar.emit(100, "统计")
 
-            except ResponseCodeException as statistics_error:
+            except (ResponseCodeException, AnalyzerException) as statistics_error:
                 if statistician.current_progress < 1:
                     error_location = "0"
                 else:
-                    error_location = statistician.users[statistician.current_progress - 1]
+                    error_location = statistician.data[statistician.current_progress - 1]
                 self.logger.warning(f"统计失败 错误位置:{error_location}\n"
                                     f"失败原因:\n"
                                     f"{str(statistics_error)}")
@@ -268,48 +321,32 @@ class MainWindow(QMainWindow):
 
         try:
             self.read_file_path()
-            usrfile_interface = UserFileInterface(self.srcfile_path, "r")
-            users = usrfile_interface.load()
+            args = get_args_ui()
 
-            statistician = Statistician(users,
-                                        progress_signal=ui_signals.updateProgressBar,
-                                        maximum_signal=ui_signals.setProgressBar)
-            statistics_mode = {
-                "评论者性别": StatisticsMode.SEX,
-                "评论者生日": StatisticsMode.BIRTHDAY,
-                "评论者学校": StatisticsMode.SCHOOL,
-                "评论者专业": StatisticsMode.PROFESSION,
-                "评论者UID位数": StatisticsMode.UID,
-                "评论者等级": StatisticsMode.LEVEL,
-                "评论者大会员": StatisticsMode.VIP,
-                "评论者标签": StatisticsMode.TAGS,
-                "评论者装扮": StatisticsMode.PENDANT,
-                "评论者名牌": StatisticsMode.NAMEPLATE,
-                "评论者关注": StatisticsMode.FOLLOWING,
-                "评论者粉丝牌": StatisticsMode.FAN_MEDALS
-            }[self.ui.statisticsModeBox.currentText()]
-            statistics_headers = {
-                "评论者性别": ["性别", "出现次数"],
-                "评论者生日": ["生日", "出现次数"],
-                "评论者学校": ["学校", "出现次数"],
-                "评论者专业": ["专业", "出现次数"],
-                "评论者UID位数": ["UID位数", "出现次数"],
-                "评论者等级": ["等级", "出现次数"],
-                "评论者大会员": ["大会员", "出现次数"],
-                "评论者标签": ["标签", "出现次数"],
-                "评论者装扮": ["装扮", "出现次数"],
-                "评论者名牌": ["名牌", "出现次数"],
-                "评论者关注": ["关注", "出现次数"],
-                "评论者粉丝牌": ["粉丝牌", "出现次数"]
-            }[self.ui.statisticsModeBox.currentText()]
-            statistics_show_mode = {
-                False: "UID模式",
-                True: "昵称模式"
-            }[self.ui.statisticsShowModeBox.isChecked()]
+            statistician: UsersStatistician | CommentsStatistician
+            if args["type"] == "用户":
+                pipe = UsrFilePipe(self.srcfile_path, "r")
+                users = pipe.load()
+                statistician = UsersStatistician(users,
+                                                 progress_signal=ui_signals.updateProgressBar,
+                                                 maximum_signal=ui_signals.setProgressBar)
+            elif args["type"] == "评论":
+                pipe = CmtFilePipe(self.srcfile_path, "r")
+                comments = pipe.load()
+                statistician = CommentsStatistician(comments,
+                                                    progress_signal=ui_signals.updateProgressBar,
+                                                    maximum_signal=ui_signals.setProgressBar)
+            else:
+                raise FileNotSelectedException("选择错误")
+
+            self.logger.info(f"统计开始 统计参数:\n"
+                             f"统计类型:{args['type']}\n"
+                             f"统计属性:{args['property']}\n"
+                             f"显示模式:{args['show']}")
 
             thread = threading.Thread(target=statistics)
             thread.start()
-        except FileNotSelectedException as error:
+        except AnalyzerException as error:
             call_msg_box(self, str(error))
 
         else:
@@ -331,18 +368,43 @@ class MainWindow(QMainWindow):
 
         self.ui.statisticsTable.show()
 
+    def show_statistics_property(self):
+        statistics_type = self.ui.statisticsTypeBox.currentText()
+        if statistics_type == "用户":
+            self.ui.statisticsPropertyBox.clear()
+            self.ui.statisticsPropertyBox.addItem("性别")
+            self.ui.statisticsPropertyBox.addItem("生日")
+            self.ui.statisticsPropertyBox.addItem("学校")
+            self.ui.statisticsPropertyBox.addItem("专业")
+            self.ui.statisticsPropertyBox.addItem("UID位数")
+            self.ui.statisticsPropertyBox.addItem("等级")
+            self.ui.statisticsPropertyBox.addItem("大会员")
+            self.ui.statisticsPropertyBox.addItem("标签")
+            self.ui.statisticsPropertyBox.addItem("装扮")
+            self.ui.statisticsPropertyBox.addItem("名牌")
+            self.ui.statisticsPropertyBox.addItem("关注")
+            self.ui.statisticsPropertyBox.addItem("粉丝牌")
+
+        elif statistics_type == "评论":
+            self.ui.statisticsPropertyBox.clear()
+            self.ui.statisticsPropertyBox.addItem("内容")
+            self.ui.statisticsPropertyBox.addItem("表情")
+
+        else:
+            return
+
     def export_analyze_uidfile(self):
         filepath, filetype = QFileDialog.getSaveFileName(self, filter="json文件(*.json)")
         if filepath == "":
             return
         self.read_file_path()
         uidfile_path = filepath
-        cmtfile_interface = CommentFileInterface(self.cmtfile_path, "r")
-        uidfile_interface = UidFileInterface(uidfile_path, "w")
+        pipe_in = CmtFilePipe(self.cmtfile_path, "r")
+        pipe_out = UidFilePipe(uidfile_path, "w")
 
-        comments = cmtfile_interface.load()
+        comments = pipe_in.load()
         uids = convert_comments_to_uids(comments)
-        uidfile_interface.dump(uids)
+        pipe_out.dump(uids)
 
     def export_statistics_resfile(self):
         if self.statistics_result is None:
@@ -350,8 +412,8 @@ class MainWindow(QMainWindow):
             return
         self.logger.info("开始保存统计结果")
         filepath, filetype = QFileDialog.getSaveFileName(self, filter="json文件 (*.json)")
-        result_file_interface = ResultFileInterface(filepath, "w")
-        result_file_interface.dump(self.statistics_result)
+        pipe = ResFilePipe(filepath, "w")
+        pipe.dump(self.statistics_result)
         self.logger.info(f"保存完毕 保存位置: {filepath}")
 
     def select_analyze_cmtfile(self):
