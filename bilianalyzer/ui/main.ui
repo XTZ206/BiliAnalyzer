@@ -566,10 +566,10 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="0" column="1" colspan="2">
            <widget class="QLineEdit" name="statisticsFileInput"/>
           </item>
-          <item row="0" column="2">
+          <item row="0" column="3">
            <widget class="QToolButton" name="statisticsFileButton">
             <property name="text">
              <string>...</string>
@@ -584,71 +584,85 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QComboBox" name="statisticsModeBox">
+           <widget class="QComboBox" name="statisticsTypeBox">
             <item>
              <property name="text">
-              <string>评论者性别</string>
+              <string>用户</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>评论者生日</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者学校</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者专业</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者UID位数</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者等级</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者大会员</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者标签</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者装扮</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者名牌</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者关注</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>评论者粉丝牌</string>
+              <string>评论</string>
              </property>
             </item>
            </widget>
           </item>
-          <item row="2" column="0" colspan="3">
-           <widget class="QCheckBox" name="statisticsShowModeBox">
+          <item row="1" column="2" colspan="2">
+           <widget class="QComboBox" name="statisticsPropertyBox">
+            <item>
+             <property name="text">
+              <string>性别</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>生日</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>学校</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>专业</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>UID位数</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>等级</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>大会员</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>标签</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>装扮</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>名牌</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>关注</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>粉丝牌</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="4">
+           <widget class="QCheckBox" name="statisticsShowBox">
             <property name="text">
              <string>以昵称显示关注/粉丝牌对象（极大增加统计所需时间！）</string>
             </property>
@@ -833,8 +847,8 @@
   <tabstop>analyzeRunButton</tabstop>
   <tabstop>statisticsFileInput</tabstop>
   <tabstop>statisticsFileButton</tabstop>
-  <tabstop>statisticsModeBox</tabstop>
-  <tabstop>statisticsShowModeBox</tabstop>
+  <tabstop>statisticsPropertyBox</tabstop>
+  <tabstop>statisticsShowBox</tabstop>
   <tabstop>statisticsTable</tabstop>
   <tabstop>statisticsRunButton</tabstop>
   <tabstop>statisticsExportButton</tabstop>
