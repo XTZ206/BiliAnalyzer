@@ -15,9 +15,9 @@ from bilibili_api.user import User
 from bilianalyzer.config import Configer, Config
 from bilianalyzer.convert import convert_video_id, convert_comments_to_uids
 from bilianalyzer.download import CommentDownloader, UserDownloader
-from bilianalyzer.exceptions import FileNotSelectedException, AnalyzerException
+from bilianalyzer.exceptions import FileNotSelectedException, AnalyzerException, FileFormatException
 from bilianalyzer.log import LoggerSetup
-from bilianalyzer.pipes import CmtFilePipe, UidFilePipe, UsrFilePipe, ResFilePipe
+from bilianalyzer.pipes import CmtFilePipe, UidFilePipe, UsrFilePipe, ResFilePipe, SwdFilePipe
 from bilianalyzer.signals import ui_signals
 from bilianalyzer.statistics import StatisticsMode, UsersStatistician, CommentsStatistician
 from bilianalyzer.ui.ui_about import Ui_AboutWindow
@@ -144,9 +144,8 @@ class MainWindow(QMainWindow):
             finally:
                 self.ui.downloadRunButton.setEnabled(True)
 
-        # TODO: 优化检查结构
-        # 检查下载准备是否完成
         try:
+            # 获取参数并检查参数是否有效
             args = get_args_ui()
             if not args["oid"].isdigit():
                 raise ValueError("资源ID必须为数字")
@@ -154,16 +153,16 @@ class MainWindow(QMainWindow):
                 raise ValueError("索引范围不能为空")
             if not os.path.exists(self.configer.config.result_path):
                 raise FileNotSelectedException("未指定下载路径")
-
+            # 根据参数生成文件管道
             current_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
             download_out_dir = f"{self.configer.config.result_path}/{args['oid']}"
             download_out_path = f"{download_out_dir}/{current_time}.cmt".replace("\\", "/")
             os.makedirs(download_out_dir, exist_ok=True)
             pipe = CmtFilePipe(download_out_path, "w")
-
+            # 生成下载器
             downloader = CommentDownloader(**args, credential=self.configer.credential,
                                            progress_signal=ui_signals.updateProgressBar)
-
+            # 记录开始下载
             self.logger.info(f"开始下载 下载参数:\n"
                              f"资源ID:{args['oid']}\n"
                              f"资源类型:{args['otype'].name}\n"
@@ -171,14 +170,17 @@ class MainWindow(QMainWindow):
                              f"下载数量:{len(args['indexes'])}\n"
                              f"预计用时:{int(len(args['indexes']) * 1.1)}")
 
+            # 在子线程进行下载
             thread = threading.Thread(target=download)
             thread.start()
 
         except (ValueError, AnalyzerException) as error:
+            # 参数错误 提示并记入日志
             call_msg_box(self, str(error))
             self.logger.warning(str(error))
 
         else:
+            # 参数有效 设置UI
             self.ui.downloadRunButton.setEnabled(False)
             self.ui.downloadProgress.setMaximum(downloader.maximum_progress)
 
@@ -238,7 +240,6 @@ class MainWindow(QMainWindow):
             self.ui.analyzeRunButton.setEnabled(False)
 
     def handle_statistics(self):
-        # TODO: 优化加载顺序
         # TODO: 可调tops值
         def get_args_ui():
 
@@ -262,7 +263,8 @@ class MainWindow(QMainWindow):
                 "用户关注": StatisticsMode.FOLLOWING,
                 "用户粉丝牌": StatisticsMode.FAN_MEDALS,
                 "评论内容": StatisticsMode.CONTENT,
-                "评论表情": StatisticsMode.EMOTES,
+                "评论表情(评论数)": StatisticsMode.EMOTES_UNREPEATABLE,
+                "评论表情(个数)": StatisticsMode.EMOTES_REPEATABLE
             }[statistics_type + statistics_property]
             statistics_headers = {
                 "用户性别": ["性别", "出现次数"],
@@ -278,7 +280,8 @@ class MainWindow(QMainWindow):
                 "用户关注": ["关注", "出现次数"],
                 "用户粉丝牌": ["粉丝牌", "出现次数"],
                 "评论内容": ["内容", "出现次数"],
-                "评论表情": ["表情", "出现次数"]
+                "评论表情(评论数)": ["表情", "出现次数"],
+                "评论表情(个数)": ["表情", "出现次数"]
             }[statistics_type + statistics_property]
 
             return {
@@ -298,7 +301,8 @@ class MainWindow(QMainWindow):
                                                 output_name=(args["show"] == "昵称模式"))
                 elif args["type"] == "评论":
                     statistics_result: OrderedDict = \
-                        statistician.statistics(args["mode"], tops=100)
+                        statistician.statistics(args["mode"], tops=100,
+                                                stopwords=pipe_stop.load())
                 else:
                     raise AnalyzerException(f"不存在的统计类型{args['type']}")
 
@@ -324,24 +328,28 @@ class MainWindow(QMainWindow):
                 self.ui.statisticsRunButton.setEnabled(True)
 
         try:
+            # 读取参数
             self.read_file_path()
             args = get_args_ui()
 
+            # 根据参数生成文件管道和统计器
             statistician: UsersStatistician | CommentsStatistician
             if args["type"] == "用户":
                 pipe = UsrFilePipe(self.statistics_in_path, "r")
+                pipe_stop = SwdFilePipe("stopwords.json", "r")
                 users = pipe.load()
                 statistician = UsersStatistician(users,
                                                  progress_signal=ui_signals.updateProgressBar,
                                                  maximum_signal=ui_signals.setProgressBar)
             elif args["type"] == "评论":
                 pipe = CmtFilePipe(self.statistics_in_path, "r")
+                pipe_stop = SwdFilePipe("stopwords.json", "r")
                 comments = pipe.load()
                 statistician = CommentsStatistician(comments,
                                                     progress_signal=ui_signals.updateProgressBar,
                                                     maximum_signal=ui_signals.setProgressBar)
             else:
-                raise FileNotSelectedException("选择错误")
+                raise FileFormatException("统计类型选择错误")
 
             self.logger.info(f"统计开始 统计参数:\n"
                              f"统计类型:{args['type']}\n"
@@ -368,7 +376,7 @@ class MainWindow(QMainWindow):
         for index, (name, count) in enumerate(result.items()):
             self.ui.statisticsTable.setItem(index, 0, QTableWidgetItem(str(name)))
             self.ui.statisticsTable.setItem(index, 1, QTableWidgetItem(str(count)))
-        self.ui.statisticsTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.ui.statisticsTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
         self.ui.statisticsTable.show()
 
@@ -392,7 +400,8 @@ class MainWindow(QMainWindow):
         elif statistics_type == "评论":
             self.ui.statisticsPropertyBox.clear()
             self.ui.statisticsPropertyBox.addItem("内容")
-            self.ui.statisticsPropertyBox.addItem("表情")
+            self.ui.statisticsPropertyBox.addItem("表情(评论数)")
+            self.ui.statisticsPropertyBox.addItem("表情(个数)")
 
         else:
             return
@@ -598,15 +607,15 @@ class ConfigWindow(QWidget):
     def reveal_credential(self):
         self.revealing = not self.revealing
         if self.revealing:
-            self.ui.credentialSessdataInput.setEchoMode(QLineEdit.Normal)
-            self.ui.credentialBilijctInput.setEchoMode(QLineEdit.Normal)
-            self.ui.credentialBuvid3Input.setEchoMode(QLineEdit.Normal)
-            self.ui.credentialDedeuseridInput.setEchoMode(QLineEdit.Normal)
+            self.ui.credentialSessdataInput.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.ui.credentialBilijctInput.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.ui.credentialBuvid3Input.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.ui.credentialDedeuseridInput.setEchoMode(QLineEdit.EchoMode.Normal)
         else:
-            self.ui.credentialSessdataInput.setEchoMode(QLineEdit.Password)
-            self.ui.credentialBilijctInput.setEchoMode(QLineEdit.Password)
-            self.ui.credentialBuvid3Input.setEchoMode(QLineEdit.Password)
-            self.ui.credentialDedeuseridInput.setEchoMode(QLineEdit.Password)
+            self.ui.credentialSessdataInput.setEchoMode(QLineEdit.EchoMode.Password)
+            self.ui.credentialBilijctInput.setEchoMode(QLineEdit.EchoMode.Password)
+            self.ui.credentialBuvid3Input.setEchoMode(QLineEdit.EchoMode.Password)
+            self.ui.credentialDedeuseridInput.setEchoMode(QLineEdit.EchoMode.Password)
 
     def select_result_path(self):
         filepath = QFileDialog.getExistingDirectory(self)
@@ -660,9 +669,9 @@ class TutorialWindow(QWidget):
 def call_msg_box(parent: QWidget, content: str,
                  level: Literal["information", "warning"] = "warning"):
     if level == "information":
-        QMessageBox.information(parent, "提示", content, QMessageBox.Yes)
+        QMessageBox.information(parent, "提示", content, QMessageBox.StandardButton.Ok)
     elif level == "warning":
-        QMessageBox.warning(parent, "警告", content, QMessageBox.Yes)
+        QMessageBox.warning(parent, "警告", content, QMessageBox.StandardButton.Ok)
 
 
 if __name__ == '__main__':

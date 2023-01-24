@@ -109,11 +109,11 @@ class CommentDownloader(Downloader):
         return await bilibili_api.comment.get_comments(oid=self.oid, type_=self.otype,
                                                        page_index=index, credential=self.credential)
 
-        # TODO: 多协程同时下载
-
     def download(self):
         """
         下载并记录结果
+        TODO: 多协程加速下载
+        TODO: 代理IP加速
         """
         for progress, index in enumerate(self.indexes):
             try:

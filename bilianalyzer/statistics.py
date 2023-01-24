@@ -27,7 +27,8 @@ class StatisticsMode(Enum):
     FOLLOWING = 11
     FAN_MEDALS = 12
     CONTENT = 13
-    EMOTES = 14
+    EMOTES_UNREPEATABLE = 14
+    EMOTES_REPEATABLE = 15
 
 
 class UsersStatistician:
@@ -161,6 +162,7 @@ class CommentsStatistician:
         self.maximum_signal = maximum_signal
 
     def statistics(self, mode: StatisticsMode,
+                   stopwords: list[str],
                    tops: int = 0) \
             -> OrderedDict[str | int, int]:
         results = OrderedDict()
@@ -171,15 +173,21 @@ class CommentsStatistician:
                 for comment in self.comments:
                     words = jieba.cut(comment.content)
                     for word in words:
-                        results.setdefault(word, 0)
-                        results[word] += 1
-            case StatisticsMode.EMOTES:
+                        if word not in stopwords:
+                            results.setdefault(word, 0)
+                            results[word] += 1
+            case StatisticsMode.EMOTES_UNREPEATABLE:
                 for comment in self.comments:
                     emotes = comment.emotes
                     for emote in emotes:
                         results.setdefault(emote, 0)
                         results[emote] += 1
-
+            case StatisticsMode.EMOTES_REPEATABLE:
+                for comment in self.comments:
+                    emotes = comment.emotes
+                    for emote in emotes:
+                        results.setdefault(emote, 0)
+                        results[emote] += comment.content.count(emote)
             case default:
                 raise ValueError(f"统计模式错误, 不存在的模式{default}")
 

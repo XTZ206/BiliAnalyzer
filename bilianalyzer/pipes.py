@@ -17,7 +17,7 @@ class FilePipe(metaclass=abc.ABCMeta):
         self.filepath = filepath
         self.mode = mode
         if self.mode == "r" and not os.path.exists(self.filepath):
-            raise FileNotSelectedException("未指定评论文件")
+            raise FileNotSelectedException("未指定文件")
         self.content = None
 
     @abc.abstractmethod
@@ -72,7 +72,7 @@ class UidFilePipe(FilePipe):
     def __init__(self, filepath: str, mode: Literal["r", "w"]):
         super().__init__(filepath, mode)
         if os.path.splitext(self.filepath)[1] != ".json":
-            raise FileModeException("只能打开json文件")
+            raise FileFormatException("只能打开json文件")
 
     def load(self) -> list[int]:
         if self.mode != "r":
@@ -97,7 +97,7 @@ class UsrFilePipe(FilePipe):
     def __init__(self, filepath: str, mode: Literal["r", "w"]):
         super().__init__(filepath, mode)
         if os.path.splitext(self.filepath)[1] != ".usr":
-            raise FileModeException("只能打开usr文件")
+            raise FileFormatException("只能打开usr文件")
 
     def load(self) -> list[UserStorage]:
         if self.mode != "r":
@@ -140,7 +140,7 @@ class ResFilePipe(FilePipe):
     def __init__(self, filepath: str, mode: Literal["r", "w"]):
         super().__init__(filepath, mode)
         if os.path.splitext(self.filepath)[1] != ".json":
-            raise FileModeException("只能打开json文件")
+            raise FileFormatException("只能打开json文件")
 
     def load(self) -> OrderedDict[str, int]:
         if self.mode != "r":
@@ -153,5 +153,30 @@ class ResFilePipe(FilePipe):
         if self.mode != "w":
             raise FileModeException("只能以写入模式写入文件")
         self.content = results
+        with open(self.filepath, "w", encoding="utf-8") as f:
+            json.dump(self.content, f, indent=4, ensure_ascii=False)
+
+
+class SwdFilePipe(FilePipe):
+    """
+    停用词文件处理相关操作
+    """
+
+    def __init__(self, filepath: str, mode: Literal["r", "w"]):
+        super().__init__(filepath, mode)
+        if os.path.splitext(self.filepath)[1] != ".json":
+            raise FileFormatException("只能打开json文件")
+
+    def load(self) -> list[str]:
+        if self.mode != "r":
+            raise FileModeException("只能以读取模式读取文件")
+        with open(self.filepath, "r", encoding="utf-8") as f:
+            self.content = json.load(f)
+        return self.content
+
+    def dump(self, stopwords: list[str]):
+        if self.mode != "w":
+            raise FileModeException("只能以写入模式写入文件")
+        self.content = stopwords
         with open(self.filepath, "w", encoding="utf-8") as f:
             json.dump(self.content, f, indent=4, ensure_ascii=False)
