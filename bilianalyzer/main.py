@@ -144,7 +144,6 @@ class MainWindow(QMainWindow):
             finally:
                 self.ui.downloadRunButton.setEnabled(True)
 
-        # TODO: 优化检查结构
         # 检查下载准备是否完成
         try:
             args = get_args_ui()
