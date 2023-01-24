@@ -9,7 +9,8 @@ a = Analysis(
     binaries=[],
     datas=[
         ("bilianalyzer\\icon", "icon"),
-        ("bilianalyzer\\docs", "docs")
+        ("bilianalyzer\\docs", "docs"),
+        ("bilianalyzer\\stopwords.json", "stopwords.json")
     ],
     hiddenimports=[],
     hookspath=[],
