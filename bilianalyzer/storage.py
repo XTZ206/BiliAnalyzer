@@ -158,8 +158,7 @@ class UserStorage:
             official_type = {
                 -1: "无认证",
                 0: "个人认证",
-                1: "机构认证",
-
+                1: "机构认证"
             }[raw_basic_info["official"]["type"]]
             official_title = raw_basic_info["official"]["title"]
             official_desc = raw_basic_info["official"]["desc"]
