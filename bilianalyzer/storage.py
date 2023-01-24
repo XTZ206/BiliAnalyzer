@@ -3,8 +3,6 @@ from typing import TypeAlias, Sequence
 from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
 
-from bilianalyzer.exceptions import StorageException
-
 RawData: TypeAlias = list | dict  # API返回结果
 
 
@@ -13,15 +11,15 @@ class CommentStorage:
     保存评论相关信息
 
     Attributes:
-        rpid    (int)                   : 评论ID
-        oid     (int)                   : 评论所在资源ID
-        otype   (CommentResourceType)   : 评论所在资源类枚举
-        user    (User)                  : 评论用户
-        time    (int)                   : 评论发出时间的时间戳
-        root    (int)                   : 根评论ID
-        parent  (int)                   : 父评论ID
-        content (str)                   : 评论内容
-        emotes  (list[str])             : 评论表情
+        rpid    (int)                           : 评论ID
+        oid     (int)                           : 评论所在资源ID
+        otype   (CommentResourceType | None)    : 评论所在资源类枚举
+        user    (User)                          : 评论用户
+        time    (int)                           : 评论发出时间的时间戳
+        root    (int)                           : 根评论ID
+        parent  (int)                           : 父评论ID
+        content (str)                           : 评论内容
+        emotes  (list[str])                     : 评论表情
     """
 
     def __init__(self, *, raw_data: RawData | None = None, cmt_file: dict | None = None):
@@ -34,7 +32,7 @@ class CommentStorage:
         if raw_data is not None:
             self.rpid: int = raw_data["rpid"]
             self.oid: int = raw_data["oid"]
-            self.otype: CommentResourceType = CommentResourceType(raw_data["type"])
+            self.otype: CommentResourceType | None = CommentResourceType(raw_data["type"])
             self.user: User = User(raw_data["mid"])
             self.time: int = raw_data["ctime"]
             self.root: int = raw_data["root"]
@@ -46,13 +44,13 @@ class CommentStorage:
         elif cmt_file is not None:
             self.rpid: int = cmt_file["rpid"]
             self.oid: int = cmt_file["oid"]
-            self.otype: CommentResourceType = CommentResourceType[cmt_file["otype"]]
+            self.otype: CommentResourceType | None = CommentResourceType[cmt_file["otype"]]
             self.user: User = User(cmt_file["user"])
-            self.time = cmt_file["time"]
-            self.root = cmt_file["root"]
-            self.parent = cmt_file["parent"]
-            self.content = cmt_file["content"]
-            self.emotes = cmt_file["emotes"]
+            self.time: list[str] = cmt_file["time"]
+            self.root: list[str] = cmt_file["root"]
+            self.parent: list[str] = cmt_file["parent"]
+            self.content: list[str] = cmt_file["content"]
+            self.emotes: list[str] = cmt_file["emotes"]
         else:
             self.rpid: int = 0
             self.oid: int = 0
