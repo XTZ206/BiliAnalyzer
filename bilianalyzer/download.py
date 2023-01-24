@@ -44,6 +44,20 @@ class Downloader(metaclass=abc.ABCMeta):
     def get_storages(self, key, reverse: bool) -> list:
         raise NotImplementedError("子类必须实现get_storages方法")
 
+    def has_error_logs(self) -> bool:
+        return self.error_logs != {}
+
+    def add_error_logs(self, location: int, error: Exception) -> None:
+        self.error_logs[location] = error
+
+    def get_error_logs(self) -> dict:
+        return {location: str(error) for location, error in self.error_logs.items()}
+
+    def get_error_logs_serialized(self) -> str:
+        return json.dumps(self.get_error_logs(), indent=4, ensure_ascii=False)
+
+
+class CommentDownloader(Downloader):
     """
     评论下载器
 
