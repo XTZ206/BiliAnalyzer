@@ -54,7 +54,15 @@ class CommentStorage:
             self.content = cmt_file["content"]
             self.emotes = cmt_file["emotes"]
         else:
-            raise StorageException("评论存储时传入参数不能同时为空")
+            self.rpid: int = 0
+            self.oid: int = 0
+            self.otype: CommentResourceType | None = None
+            self.user: User = User(0)
+            self.time: int = 0
+            self.root: int = 0
+            self.parent: int = 0
+            self.content: str = ""
+            self.emotes: list[str] = []
 
     def __eq__(self, other):
         """
@@ -98,6 +106,22 @@ class UserStorage:
         """
         if raw_data is not None:
 
+            self.uid: int = 0
+            self.name: str = "未知"
+            self.sign: str = "未知"
+            self.level: str = "未知"
+            self.vip: str = "未知"
+            self.tags: list[str] = []
+            self.pendant: str = "无名牌"
+            self.nameplate: str = "无名牌"
+            self.sex: str = "保密"
+            self.birthday: str = "未知"
+            self.school: str = "未知"
+            self.profession: str = "未知"
+            self.official: dict[str, str] = {"type": "无认证", "title": "", "desc": ""}
+            self.followings: list[int] = []
+            self.fan_medals: dict[str, int] = {}
+
             raw_basic_info = raw_data[0]
             raw_followings = raw_data[1]
             raw_fan_medals = raw_data[2]
@@ -111,28 +135,23 @@ class UserStorage:
                 if raw_basic_info["vip"]["status"] == 1 else "普通用户"
 
             # 解析用户社交数据
-            self.tags: list[str] = []
             if raw_basic_info["tags"] is not None:
                 self.tags = raw_basic_info["tags"]
-            self.pendant: str = "无装扮"
             if raw_basic_info["pendant"] is not None:
                 if raw_basic_info["pendant"]["name"] != "":
                     self.pendant = raw_basic_info["pendant"]["name"]
-            self.nameplate: str = "无名牌"
             if raw_basic_info["nameplate"] is not None:
                 if raw_basic_info["nameplate"]["name"] != "":
                     self.nameplate = raw_basic_info["nameplate"]["name"]
 
             # 解析用户隐私数据
-            self.sex = raw_basic_info["sex"] \
-                if raw_basic_info["sex"] is not None else "未知"
-            self.birthday = raw_basic_info["birthday"] \
-                if raw_basic_info["birthday"] is not None else "未知"
-            self.school: str = "未知"
+            if raw_basic_info["sex"] is not None:
+                self.sex = raw_basic_info["sex"]
+            if raw_basic_info["birthday"] is not None:
+                self.birthday = raw_basic_info["birthday"]
             if raw_basic_info["school"] is not None:
                 if raw_basic_info["school"]["name"] != "":
                     self.school = raw_basic_info["school"]["name"]
-            self.profession: str = "未知"
             if raw_basic_info["profession"] is not None:
                 if raw_basic_info["profession"]["name"] != "":
                     self.profession = raw_basic_info["profession"]["name"]
@@ -179,7 +198,21 @@ class UserStorage:
             self.followings: list[int] = usr_file["followings"]
             self.fan_medals: dict[str, int] = usr_file["fan_medals"]
         else:
-            raise StorageException("用户存储时传入参数不能同时为空")
+            self.uid: int = 0
+            self.name: str = "未知"
+            self.sign: str = "未知"
+            self.level: str = "未知"
+            self.vip: str = "未知"
+            self.tags: list[str] = []
+            self.pendant: str = "无名牌"
+            self.nameplate: str = "无名牌"
+            self.sex: str = "保密"
+            self.birthday: str = "未知"
+            self.school: str = "未知"
+            self.profession: str = "未知"
+            self.official: dict[str, str] = {"type": "无认证", "title": "", "desc": ""}
+            self.followings: list[int] = []
+            self.fan_medals: dict[str, int] = {}
 
     def __eq__(self, other):
         """
