@@ -299,7 +299,8 @@ class MainWindow(QMainWindow):
                                                 output_name=(args["show"] == "昵称模式"))
                 elif args["type"] == "评论":
                     statistics_result: OrderedDict = \
-                        statistician.statistics(args["mode"], tops=100)
+                        statistician.statistics(args["mode"], tops=100,
+                                                stopwords=pipe_stop.load())
                 else:
                     raise AnalyzerException(f"不存在的统计类型{args['type']}")
 
@@ -331,12 +332,14 @@ class MainWindow(QMainWindow):
             statistician: UsersStatistician | CommentsStatistician
             if args["type"] == "用户":
                 pipe = UsrFilePipe(self.statistics_in_path, "r")
+                pipe_stop = SwdFilePipe("stopwords.json", "r")
                 users = pipe.load()
                 statistician = UsersStatistician(users,
                                                  progress_signal=ui_signals.updateProgressBar,
                                                  maximum_signal=ui_signals.setProgressBar)
             elif args["type"] == "评论":
                 pipe = CmtFilePipe(self.statistics_in_path, "r")
+                pipe_stop = SwdFilePipe("stopwords.json", "r")
                 comments = pipe.load()
                 statistician = CommentsStatistician(comments,
                                                     progress_signal=ui_signals.updateProgressBar,
