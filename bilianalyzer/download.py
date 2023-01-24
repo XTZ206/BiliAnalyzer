@@ -1,18 +1,63 @@
+import abc
 import json
 import time
 from typing import Collection, Literal, Sequence
 
 import bilibili_api
 from PySide6.QtCore import Signal
-from bilibili_api import sync, Credential
+from bilibili_api import sync, Credential, ResponseCodeException
 from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
 
-from bilianalyzer.exceptions import CheckingException
 from bilianalyzer.storage import CommentStorage, RawData, UserStorage
 
 
-class CommentDownloader:
+class Downloader(metaclass=abc.ABCMeta):
+    """
+    Attributes:
+        credential      (Credential)                : 凭据
+        storages        (set)                       : 内置数据存储
+        progress_signal (Signal | None)             : 进度条信号
+        error_logs      (dict[int, Exception])      : 错误记录
+    """
+
+    def __init__(self,
+                 credential: Credential | None = None,
+                 progress_signal: Signal | None = None):
+        self.credential: Credential = credential if credential is not None else Credential()
+        self.storages: set = set()
+        self.progress_signal: Signal | None = progress_signal
+        self.error_logs: dict[int, Exception] = {}
+
+    @abc.abstractmethod
+    async def get_raw_data(self, index: int) -> RawData | Sequence[RawData]:
+        raise NotImplementedError("子类必须实现get_raw_data方法")
+
+    @abc.abstractmethod
+    def download(self):
+        raise NotImplementedError("子类必须实现download方法")
+
+    def add_storage(self, storage) -> None:
+        self.storages.add(storage)
+
+    @abc.abstractmethod
+    def get_storages(self, key, reverse: bool) -> list:
+        raise NotImplementedError("子类必须实现get_storages方法")
+
+    def has_error_logs(self) -> bool:
+        return self.error_logs != {}
+
+    def add_error_logs(self, location: int, error: Exception) -> None:
+        self.error_logs[location] = error
+
+    def get_error_logs(self) -> dict:
+        return {location: str(error) for location, error in self.error_logs.items()}
+
+    def get_error_logs_serialized(self) -> str:
+        return json.dumps(self.get_error_logs(), indent=4, ensure_ascii=False)
+
+
+class CommentDownloader(Downloader):
     """
     评论下载器
 
@@ -20,9 +65,8 @@ class CommentDownloader:
         oid                 (int)                           : 资源 ID
         otype               (CommentResourceType)           : 资源类枚举
         indexes             (Collection[int])               : 下载索引范围
-        is_checked          (bool)                          : 是否已检查参数
         credential          (Credential | None, optional)   : 凭据. Defaults to None.
-        comment_storages    (set[CommentStorage])           : 评论存储, 无重复
+        storages            (set[CommentStorage])           : 评论存储, 无重复
         current_progress    (int)                           : 当前进度
         maximum_progress    (int)                           : 最大进度
         progress_signal     (Signal | None, optional)       : 进度条信号. Defaults to None.
@@ -41,34 +85,18 @@ class CommentDownloader:
             progress_signal (Signal | None, optional)       : 更新进度条的信号
         """
 
+        super().__init__(credential, progress_signal)
         self.oid: int = oid
         self.otype: CommentResourceType = otype
         self.indexes: Collection[int] = indexes
-        self.is_checked: bool = False
-        self.credential: Credential | None = credential
-        self.comment_storages: set[CommentStorage] = set()
+
+        self.storages: set[CommentStorage] = set()
 
         self.current_progress: int = 0
         self.maximum_progress: int = len(self.indexes)
         self.progress_signal: Signal | None = progress_signal
 
-    def check_arguments(self):
-        """
-        检查传入的资源ID和索引范围是否有效
-        """
-        try:
-            self.oid = int(self.oid)
-        except ValueError:
-            raise ValueError("资源ID必须为数字")
-        if len(self.indexes) == 0:
-            raise ValueError("索引范围不能为空")
-        for index in self.indexes:
-            if index <= 0:
-                raise ValueError("索引必须都为正整数")
-
-        self.is_checked = True
-
-    async def get_raw_data(self, index=1) -> RawData:
+    async def get_raw_data(self, index: int) -> RawData:
         """
         根据索引获取对应片段评论
 
@@ -81,45 +109,47 @@ class CommentDownloader:
         return await bilibili_api.comment.get_comments(oid=self.oid, type_=self.otype,
                                                        page_index=index, credential=self.credential)
 
-    # TODO: 多协程同时下载
+        # TODO: 多协程同时下载
+
     def download(self):
         """
         下载并记录结果
         """
-        if not self.is_checked:
-            raise CheckingException("下载前未检查传入参数")
-
         for progress, index in enumerate(self.indexes):
-            self.current_progress = progress + 1
-            coroutine = self.get_raw_data(index)
-            raw: dict[str, RawData] = sync(coroutine)
+            try:
+                self.current_progress = progress + 1
+                coroutine = self.get_raw_data(index)
+                raw: dict[str, RawData] = sync(coroutine)
 
-            reply: RawData
-            if raw["replies"] is not None:
-                for reply in raw["replies"]:
-                    self.add_comment(CommentStorage(raw_data=reply))
-            if self.progress_signal is not None:
-                self.progress_signal.emit(self.current_progress, "下载")
-            time.sleep(1)
+                reply: RawData
+                if raw["replies"] is not None:
+                    for reply in raw["replies"]:
+                        self.add_storage(CommentStorage(raw_data=reply))
+            except ResponseCodeException as error:
+                self.add_error_logs(index, error)
+            finally:
+                if self.progress_signal is not None:
+                    self.progress_signal.emit(self.current_progress, "下载")
+                time.sleep(1)
 
-    def add_comment(self, comment_storage: CommentStorage) -> None:
+    def add_storage(self, storage: CommentStorage) -> None:
         """
         添加评论到内置评论存储
         Args:
-            comment_storage   (CommentStorage) : 添加的评论
+            storage   (CommentStorage) : 添加的评论
         """
-        self.comment_storages.add(comment_storage)
+        self.storages.add(storage)
 
-    def output_comments(self,
-                        key: Literal["rpid", "user", "time"] | None = None,
-                        reverse: bool = False) -> list[CommentStorage]:
+    def get_storages(self,
+                     key: Literal["rpid", "user", "time"] | None = None,
+                     reverse: bool = False) -> list[CommentStorage]:
         """
         排序后输出评论列表
         Args:
             key     (Literal["rpid", "user", "time"] | None)    : 评论排序方式
             reverse (bool)                                      : 是否倒序
         Return:
-            list[comment_storage]： 评论列表
+            list[CommentStorage]： 评论列表
         """
         if key is not None:
             key_func = {
@@ -127,31 +157,35 @@ class CommentDownloader:
                 "user": lambda cmt_st: cmt_st.user.get_uid(),
                 "time": lambda cmt_st: cmt_st.time,
             }[key]  # 对应排序方式的处理函数
-            return sorted(self.comment_storages, key=key_func, reverse=reverse)
+            return sorted(self.storages, key=key_func, reverse=reverse)
         else:
-            return list(self.comment_storages)
+            return list(self.storages)
 
 
-class UserDownloader:
+class UserDownloader(Downloader):
     """
     Attributes:
         users               (list[User])                    : 需要下载数据的用户
         credential          (Credential | None, optional)   : 凭据. Defaults to None
-        user_storages       (set[UserStorage])              : 用户存储, 无重复
+        storages            (set[UserStorage])              : 用户存储, 无重复
         current_progress    (int)                           : 当前进度
         maximum_progress    (int)                           : 最大进度
-        progress_signal     (Signal | None)       : 更新进度条的信号
+        progress_signal     (Signal | None)                 : 更新进度条的信号
     """
 
     def __init__(self, users: list[User],
                  credential: Credential | None = None,
                  progress_signal: Signal | None = None):
+        super().__init__(credential, progress_signal)
+
         self.users: list[User] = users
         self.credential: Credential | None = credential
+
         if self.credential is not None:
             for user in self.users:
                 user.credential = self.credential
-        self.user_storages: set[UserStorage] = set()
+
+        self.storages: set[UserStorage] = set()
 
         self.current_progress: int = 0
         self.maximum_progress: int = len(self.users)
@@ -166,24 +200,29 @@ class UserDownloader:
         )
 
     def download(self):
+
         for index in range(len(self.users)):
-            self.current_progress = index + 1
-            coroutine = self.get_raw_data(index)
-            self.add_user(UserStorage(raw_data=sync(coroutine)))
+            try:
+                self.current_progress = index + 1
+                coroutine = self.get_raw_data(index)
+                self.add_storage(UserStorage(raw_data=sync(coroutine)))
+            except ResponseCodeException as error:
+                self.add_storage(UserStorage())
+                self.add_error_logs(index, error)
+            finally:
+                if self.progress_signal is not None:
+                    self.progress_signal.emit(self.current_progress, "分析")
+                time.sleep(1)
 
-            if self.progress_signal is not None:
-                self.progress_signal.emit(self.current_progress, "分析")
-            time.sleep(1)
-
-    def add_user(self, user_storage: UserStorage) -> None:
+    def add_storage(self, storage: UserStorage) -> None:
         """
         添加用户到内置用户存储
         Args:
-            user_storage    (CommentStorage)    : 添加的用户
+            storage    (UserStorage)    : 添加的用户
         """
-        self.user_storages.add(user_storage)
+        self.storages.add(storage)
 
-    def output_users(self,
+    def get_storages(self,
                      key: Literal["uid", "name", "level"] | None = None,
                      reverse: bool = False):
         if key is not None:
@@ -192,9 +231,9 @@ class UserDownloader:
                 "name": lambda usr_st: usr_st.name,
                 "level": lambda usr_st: usr_st.level,
             }[key]  # 对应排序方式的处理函数
-            return sorted(self.user_storages, key=key_func, reverse=reverse)
+            return sorted(self.storages, key=key_func, reverse=reverse)
         else:
-            return list(self.user_storages)
+            return list(self.storages)
 
 
 if __name__ == '__main__':

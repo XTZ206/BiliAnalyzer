@@ -298,7 +298,9 @@ class Ui_MainWindow(object):
 
         self.analyzePercentageBox = QDoubleSpinBox(self.analyzeTab)
         self.analyzePercentageBox.setObjectName(u"analyzePercentageBox")
+        self.analyzePercentageBox.setMinimum(0.010000000000000)
         self.analyzePercentageBox.setMaximum(100.000000000000000)
+        self.analyzePercentageBox.setValue(100.000000000000000)
 
         self.analyzeInfoLayout.addWidget(self.analyzePercentageBox, 2, 1, 1, 1)
 

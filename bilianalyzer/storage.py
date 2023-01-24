@@ -3,8 +3,6 @@ from typing import TypeAlias, Sequence
 from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
 
-from bilianalyzer.exceptions import StorageException
-
 RawData: TypeAlias = list | dict  # API返回结果
 
 
@@ -13,15 +11,15 @@ class CommentStorage:
     保存评论相关信息
 
     Attributes:
-        rpid    (int)                   : 评论ID
-        oid     (int)                   : 评论所在资源ID
-        otype   (CommentResourceType)   : 评论所在资源类枚举
-        user    (User)                  : 评论用户
-        time    (int)                   : 评论发出时间的时间戳
-        root    (int)                   : 根评论ID
-        parent  (int)                   : 父评论ID
-        content (str)                   : 评论内容
-        emotes  (list[str])             : 评论表情
+        rpid    (int)                           : 评论ID
+        oid     (int)                           : 评论所在资源ID
+        otype   (CommentResourceType | None)    : 评论所在资源类枚举
+        user    (User)                          : 评论用户
+        time    (int)                           : 评论发出时间的时间戳
+        root    (int)                           : 根评论ID
+        parent  (int)                           : 父评论ID
+        content (str)                           : 评论内容
+        emotes  (list[str])                     : 评论表情
     """
 
     def __init__(self, *, raw_data: RawData | None = None, cmt_file: dict | None = None):
@@ -34,7 +32,7 @@ class CommentStorage:
         if raw_data is not None:
             self.rpid: int = raw_data["rpid"]
             self.oid: int = raw_data["oid"]
-            self.otype: CommentResourceType = CommentResourceType(raw_data["type"])
+            self.otype: CommentResourceType | None = CommentResourceType(raw_data["type"])
             self.user: User = User(raw_data["mid"])
             self.time: int = raw_data["ctime"]
             self.root: int = raw_data["root"]
@@ -46,15 +44,23 @@ class CommentStorage:
         elif cmt_file is not None:
             self.rpid: int = cmt_file["rpid"]
             self.oid: int = cmt_file["oid"]
-            self.otype: CommentResourceType = CommentResourceType[cmt_file["otype"]]
+            self.otype: CommentResourceType | None = CommentResourceType[cmt_file["otype"]]
             self.user: User = User(cmt_file["user"])
-            self.time = cmt_file["time"]
-            self.root = cmt_file["root"]
-            self.parent = cmt_file["parent"]
-            self.content = cmt_file["content"]
-            self.emotes = cmt_file["emotes"]
+            self.time: list[str] = cmt_file["time"]
+            self.root: list[str] = cmt_file["root"]
+            self.parent: list[str] = cmt_file["parent"]
+            self.content: list[str] = cmt_file["content"]
+            self.emotes: list[str] = cmt_file["emotes"]
         else:
-            raise StorageException("评论存储时传入参数不能同时为空")
+            self.rpid: int = 0
+            self.oid: int = 0
+            self.otype: CommentResourceType | None = None
+            self.user: User = User(0)
+            self.time: int = 0
+            self.root: int = 0
+            self.parent: int = 0
+            self.content: str = ""
+            self.emotes: list[str] = []
 
     def __eq__(self, other):
         """
@@ -98,6 +104,22 @@ class UserStorage:
         """
         if raw_data is not None:
 
+            self.uid: int = 0
+            self.name: str = "未知"
+            self.sign: str = "未知"
+            self.level: str = "未知"
+            self.vip: str = "未知"
+            self.tags: list[str] = []
+            self.pendant: str = "无名牌"
+            self.nameplate: str = "无名牌"
+            self.sex: str = "保密"
+            self.birthday: str = "未知"
+            self.school: str = "未知"
+            self.profession: str = "未知"
+            self.official: dict[str, str] = {"type": "无认证", "title": "", "desc": ""}
+            self.followings: list[int] = []
+            self.fan_medals: dict[str, int] = {}
+
             raw_basic_info = raw_data[0]
             raw_followings = raw_data[1]
             raw_fan_medals = raw_data[2]
@@ -111,28 +133,23 @@ class UserStorage:
                 if raw_basic_info["vip"]["status"] == 1 else "普通用户"
 
             # 解析用户社交数据
-            self.tags: list[str] = []
             if raw_basic_info["tags"] is not None:
                 self.tags = raw_basic_info["tags"]
-            self.pendant: str = "无装扮"
             if raw_basic_info["pendant"] is not None:
                 if raw_basic_info["pendant"]["name"] != "":
                     self.pendant = raw_basic_info["pendant"]["name"]
-            self.nameplate: str = "无名牌"
             if raw_basic_info["nameplate"] is not None:
                 if raw_basic_info["nameplate"]["name"] != "":
                     self.nameplate = raw_basic_info["nameplate"]["name"]
 
             # 解析用户隐私数据
-            self.sex = raw_basic_info["sex"] \
-                if raw_basic_info["sex"] is not None else "未知"
-            self.birthday = raw_basic_info["birthday"] \
-                if raw_basic_info["birthday"] is not None else "未知"
-            self.school: str = "未知"
+            if raw_basic_info["sex"] is not None:
+                self.sex = raw_basic_info["sex"]
+            if raw_basic_info["birthday"] is not None:
+                self.birthday = raw_basic_info["birthday"]
             if raw_basic_info["school"] is not None:
                 if raw_basic_info["school"]["name"] != "":
                     self.school = raw_basic_info["school"]["name"]
-            self.profession: str = "未知"
             if raw_basic_info["profession"] is not None:
                 if raw_basic_info["profession"]["name"] != "":
                     self.profession = raw_basic_info["profession"]["name"]
@@ -141,8 +158,7 @@ class UserStorage:
             official_type = {
                 -1: "无认证",
                 0: "个人认证",
-                1: "机构认证",
-
+                1: "机构认证"
             }[raw_basic_info["official"]["type"]]
             official_title = raw_basic_info["official"]["title"]
             official_desc = raw_basic_info["official"]["desc"]
@@ -179,7 +195,21 @@ class UserStorage:
             self.followings: list[int] = usr_file["followings"]
             self.fan_medals: dict[str, int] = usr_file["fan_medals"]
         else:
-            raise StorageException("用户存储时传入参数不能同时为空")
+            self.uid: int = 0
+            self.name: str = "未知"
+            self.sign: str = "未知"
+            self.level: str = "未知"
+            self.vip: str = "未知"
+            self.tags: list[str] = []
+            self.pendant: str = "无名牌"
+            self.nameplate: str = "无名牌"
+            self.sex: str = "保密"
+            self.birthday: str = "未知"
+            self.school: str = "未知"
+            self.profession: str = "未知"
+            self.official: dict[str, str] = {"type": "无认证", "title": "", "desc": ""}
+            self.followings: list[int] = []
+            self.fan_medals: dict[str, int] = {}
 
     def __eq__(self, other):
         """

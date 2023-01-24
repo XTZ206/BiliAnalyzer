@@ -8,7 +8,7 @@ from typing import Callable, Literal
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QTableWidgetItem, \
     QProgressBar, QHeaderView, QLineEdit
-from bilibili_api import Credential, ResponseCodeException
+from bilibili_api import Credential
 from bilibili_api.comment import CommentResourceType
 from bilibili_api.user import User
 
@@ -43,9 +43,9 @@ class MainWindow(QMainWindow):
             "tutorial": None
         }
 
-        self.cmtfile_path: str = ""
-        self.usrfile_path: str = ""
-        self.srcfile_path: str = ""
+        self.analyze_in_path: str = ""
+        self.analyze_out_path: str = ""
+        self.statistics_in_path: str = ""
         self.statistics_result: OrderedDict | None = None
 
     def bind(self):
@@ -57,12 +57,15 @@ class MainWindow(QMainWindow):
         self.ui.downloadRunButton.clicked.connect(self.handle_download)
 
         # 分析页
+        self.ui.analyzeCmtfileInput.textEdited.connect(self.read_file_path)
+        self.ui.analyzeUsrfileInput.textEdited.connect(self.read_file_path)
         self.ui.analyzeCmtfileButton.clicked.connect(self.select_analyze_cmtfile)
         self.ui.analyzeUsrfileButton.clicked.connect(self.select_analyze_usrfile)
         self.ui.analyzeExportButton.clicked.connect(self.export_analyze_uidfile)
         self.ui.analyzeRunButton.clicked.connect(self.handle_analyze)
 
         # 统计页
+        self.ui.statisticsFileInput.textEdited.connect(self.read_file_path)
         self.ui.statisticsFileButton.clicked.connect(self.select_statistics_srcfile)
         self.ui.statisticsRunButton.clicked.connect(self.handle_statistics)
         self.ui.statisticsExportButton.clicked.connect(self.export_statistics_resfile)
@@ -122,53 +125,51 @@ class MainWindow(QMainWindow):
                 downloader.download()
                 end_time = int(time.time())
                 self.logger.info(f"下载完毕 用时{end_time - start_time}秒")
+                if downloader.has_error_logs():
+                    self.logger.warning(f"下载错误: \n"
+                                        f"{downloader.get_error_logs_serialized()}")
 
-                # 生成评论文件保存路径
-                current_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-                result_path = f"{self.configer.config.result_path}/{args['oid']}"
-                cmtfile_path = f"{result_path}/{current_time}.cmt".replace("\\", "/")
-                os.makedirs(result_path, exist_ok=True)
+                pipe.dump(downloader.get_storages(key="rpid"))
+                self.logger.info(f"保存完毕 保存位置:{pipe.filepath}")
 
-                # 保存文件
-                pipe = CmtFilePipe(cmtfile_path, "w")
-                pipe.dump(downloader.output_comments(key="rpid"))
-                self.logger.info(f"保存完毕 保存位置:{cmtfile_path}")
-
-                # 自动将下载的评论文件传入统计模块
-                self.cmtfile_path = cmtfile_path
+                # 自动将下载的评论文件传入分析模块
+                self.analyze_in_path = pipe.filepath
                 self.show_file_path()
 
-            except (ResponseCodeException, AnalyzerException) as download_error:
-                if downloader.current_progress < 1:
-                    error_location = "0"
-                else:
-                    error_location = download_error.users[downloader.current_progress - 1]
-                self.logger.warning(f"下载失败 错误位置:{error_location}\n"
-                                    f"失败原因:\n"
-                                    f"{str(download_error)}")
+            except AnalyzerException as download_error:
+                self.logger.warning(f"下载失败: \n"
+                                    f"{downloader.get_error_logs_serialized()}")
                 ui_signals.callErrorBox.emit(download_error)
 
             finally:
                 self.ui.downloadRunButton.setEnabled(True)
 
-        args = get_args_ui()
-        credential = self.configer.credential
-        downloader = CommentDownloader(**args, credential=credential,
-                                       progress_signal=ui_signals.updateProgressBar)
-
-        self.logger.info(f"开始下载 下载参数:\n"
-                         f"资源ID:{args['oid']}\n"
-                         f"资源类型:{args['otype'].name}\n"
-                         f"索引范围:{args['indexes']}\n"
-                         f"下载数量:{len(args['indexes'])}\n"
-                         f"预计用时:{int(len(args['indexes']) * 1.1)}")
-
         # TODO: 优化检查结构
         # 检查下载准备是否完成
         try:
-            downloader.check_arguments()
+            args = get_args_ui()
+            if not args["oid"].isdigit():
+                raise ValueError("资源ID必须为数字")
+            if len(args["indexes"]) == 0:
+                raise ValueError("索引范围不能为空")
             if not os.path.exists(self.configer.config.result_path):
                 raise FileNotSelectedException("未指定下载路径")
+
+            current_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+            download_out_dir = f"{self.configer.config.result_path}/{args['oid']}"
+            download_out_path = f"{download_out_dir}/{current_time}.cmt".replace("\\", "/")
+            os.makedirs(download_out_dir, exist_ok=True)
+            pipe = CmtFilePipe(download_out_path, "w")
+
+            downloader = CommentDownloader(**args, credential=self.configer.credential,
+                                           progress_signal=ui_signals.updateProgressBar)
+
+            self.logger.info(f"开始下载 下载参数:\n"
+                             f"资源ID:{args['oid']}\n"
+                             f"资源类型:{args['otype'].name}\n"
+                             f"索引范围:{args['indexes']}\n"
+                             f"下载数量:{len(args['indexes'])}\n"
+                             f"预计用时:{int(len(args['indexes']) * 1.1)}")
 
             thread = threading.Thread(target=download)
             thread.start()
@@ -188,32 +189,34 @@ class MainWindow(QMainWindow):
                 downloader.download()
                 end_time = int(time.time())
                 self.logger.info(f"分析完毕 用时{end_time - start_time}秒")
+                if downloader.has_error_logs():
+                    self.logger.warning(f"下载错误: \n"
+                                        f"{downloader.get_error_logs_serialized()}")
 
-                pipe_out.dump(downloader.output_users(key="uid"))
+                pipe_out.dump(downloader.get_storages(key="uid"))
                 self.logger.info(f"保存完毕 保存位置:{pipe_out.filepath}")
+                self.statistics_in_path = self.analyze_out_path
+                self.show_file_path()
 
-            except (ResponseCodeException, AnalyzerException) as analyze_error:
-                if downloader.current_progress < 1:
-                    error_location = "0"
-                else:
-                    error_location = downloader.users[downloader.current_progress - 1].get_uid()
-                self.logger.warning(f"分析失败 错误位置:{error_location}\n"
-                                    f"失败原因:\n"
-                                    f"{str(analyze_error)}")
+            except AnalyzerException as analyze_error:
+                self.logger.warning(f"分析失败: \n"
+                                    f"{downloader.get_error_logs_serialized()}")
                 ui_signals.callErrorBox.emit(analyze_error)
             finally:
                 self.ui.analyzeRunButton.setEnabled(True)
 
         try:
             self.read_file_path()
-            pipe_in = CmtFilePipe(self.cmtfile_path, "r")
-            pipe_out = UsrFilePipe(self.usrfile_path, "w")
+            if self.analyze_in_path == "" or self.analyze_out_path == "":
+                raise FileNotSelectedException("请选择输入和输出的文件路径")
+
+            pipe_in = CmtFilePipe(self.analyze_in_path, "r")
+            pipe_out = UsrFilePipe(self.analyze_out_path, "w")
 
             comments = pipe_in.load()
             uids = convert_comments_to_uids(comments)
-            users = [User(uid) for uid in uids]
             percentage = self.ui.analyzePercentageBox.value() / 100
-            users = users[::int(1 / percentage)] if percentage > 0 else []
+            users = [User(uid) for uid in uids][::int(1 / percentage)] if percentage > 0 else []
             downloader = UserDownloader(users, credential=self.configer.credential,
                                         progress_signal=ui_signals.updateProgressBar)
 
@@ -306,7 +309,8 @@ class MainWindow(QMainWindow):
                 if args["show"] == "标准模式":
                     ui_signals.updateProgressBar.emit(100, "统计")
 
-            except (ResponseCodeException, AnalyzerException) as statistics_error:
+            # TODO: 使用积累错误记录
+            except AnalyzerException as statistics_error:
                 if statistician.current_progress < 1:
                     error_location = "0"
                 else:
@@ -325,13 +329,13 @@ class MainWindow(QMainWindow):
 
             statistician: UsersStatistician | CommentsStatistician
             if args["type"] == "用户":
-                pipe = UsrFilePipe(self.srcfile_path, "r")
+                pipe = UsrFilePipe(self.statistics_in_path, "r")
                 users = pipe.load()
                 statistician = UsersStatistician(users,
                                                  progress_signal=ui_signals.updateProgressBar,
                                                  maximum_signal=ui_signals.setProgressBar)
             elif args["type"] == "评论":
-                pipe = CmtFilePipe(self.srcfile_path, "r")
+                pipe = CmtFilePipe(self.statistics_in_path, "r")
                 comments = pipe.load()
                 statistician = CommentsStatistician(comments,
                                                     progress_signal=ui_signals.updateProgressBar,
@@ -399,7 +403,7 @@ class MainWindow(QMainWindow):
             return
         self.read_file_path()
         uidfile_path = filepath
-        pipe_in = CmtFilePipe(self.cmtfile_path, "r")
+        pipe_in = CmtFilePipe(self.analyze_in_path, "r")
         pipe_out = UidFilePipe(uidfile_path, "w")
 
         comments = pipe_in.load()
@@ -420,13 +424,13 @@ class MainWindow(QMainWindow):
         self.read_file_path()
         filepath, filetype = QFileDialog.getOpenFileName(self, filter="cmt文件(*.cmt)")
         if os.path.exists(filepath):
-            self.cmtfile_path = filepath
+            self.analyze_in_path = filepath
         self.show_file_path()
 
     def select_analyze_usrfile(self):
         self.read_file_path()
         filepath, filetype = QFileDialog.getSaveFileName(self, filter="usr文件(*.usr)")
-        self.usrfile_path = filepath
+        self.analyze_out_path = filepath
         self.show_file_path()
 
     def select_statistics_srcfile(self):
@@ -436,18 +440,18 @@ class MainWindow(QMainWindow):
         if filepath == "":
             return
         elif os.path.exists(filepath):
-            self.srcfile_path = filepath
+            self.statistics_in_path = filepath
         self.show_file_path()
 
     def read_file_path(self):
-        self.cmtfile_path = self.ui.analyzeCmtfileInput.text()
-        self.usrfile_path = self.ui.analyzeUsrfileInput.text()
-        self.srcfile_path = self.ui.statisticsFileInput.text()
+        self.analyze_in_path = self.ui.analyzeCmtfileInput.text()
+        self.analyze_out_path = self.ui.analyzeUsrfileInput.text()
+        self.statistics_in_path = self.ui.statisticsFileInput.text()
 
     def show_file_path(self):
-        self.ui.analyzeCmtfileInput.setText(self.cmtfile_path)
-        self.ui.analyzeUsrfileInput.setText(self.usrfile_path)
-        self.ui.statisticsFileInput.setText(self.srcfile_path)
+        self.ui.analyzeCmtfileInput.setText(self.analyze_in_path)
+        self.ui.analyzeUsrfileInput.setText(self.analyze_out_path)
+        self.ui.statisticsFileInput.setText(self.statistics_in_path)
 
     def update_progress_bar(self, value: int, bar_name: Literal["下载", "分析", "统计"]):
         progress_bar: QProgressBar = {
