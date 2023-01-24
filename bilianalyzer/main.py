@@ -369,7 +369,7 @@ class MainWindow(QMainWindow):
         for index, (name, count) in enumerate(result.items()):
             self.ui.statisticsTable.setItem(index, 0, QTableWidgetItem(str(name)))
             self.ui.statisticsTable.setItem(index, 1, QTableWidgetItem(str(count)))
-        self.ui.statisticsTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.ui.statisticsTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
         self.ui.statisticsTable.show()
 
@@ -599,15 +599,15 @@ class ConfigWindow(QWidget):
     def reveal_credential(self):
         self.revealing = not self.revealing
         if self.revealing:
-            self.ui.credentialSessdataInput.setEchoMode(QLineEdit.Normal)
-            self.ui.credentialBilijctInput.setEchoMode(QLineEdit.Normal)
-            self.ui.credentialBuvid3Input.setEchoMode(QLineEdit.Normal)
-            self.ui.credentialDedeuseridInput.setEchoMode(QLineEdit.Normal)
+            self.ui.credentialSessdataInput.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.ui.credentialBilijctInput.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.ui.credentialBuvid3Input.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.ui.credentialDedeuseridInput.setEchoMode(QLineEdit.EchoMode.Normal)
         else:
-            self.ui.credentialSessdataInput.setEchoMode(QLineEdit.Password)
-            self.ui.credentialBilijctInput.setEchoMode(QLineEdit.Password)
-            self.ui.credentialBuvid3Input.setEchoMode(QLineEdit.Password)
-            self.ui.credentialDedeuseridInput.setEchoMode(QLineEdit.Password)
+            self.ui.credentialSessdataInput.setEchoMode(QLineEdit.EchoMode.Password)
+            self.ui.credentialBilijctInput.setEchoMode(QLineEdit.EchoMode.Password)
+            self.ui.credentialBuvid3Input.setEchoMode(QLineEdit.EchoMode.Password)
+            self.ui.credentialDedeuseridInput.setEchoMode(QLineEdit.EchoMode.Password)
 
     def select_result_path(self):
         filepath = QFileDialog.getExistingDirectory(self)
@@ -661,9 +661,9 @@ class TutorialWindow(QWidget):
 def call_msg_box(parent: QWidget, content: str,
                  level: Literal["information", "warning"] = "warning"):
     if level == "information":
-        QMessageBox.information(parent, "提示", content, QMessageBox.Yes)
+        QMessageBox.information(parent, "提示", content, QMessageBox.StandardButton.Ok)
     elif level == "warning":
-        QMessageBox.warning(parent, "警告", content, QMessageBox.Yes)
+        QMessageBox.warning(parent, "警告", content, QMessageBox.StandardButton.Ok)
 
 
 if __name__ == '__main__':
