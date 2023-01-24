@@ -263,7 +263,8 @@ class MainWindow(QMainWindow):
                 "用户关注": StatisticsMode.FOLLOWING,
                 "用户粉丝牌": StatisticsMode.FAN_MEDALS,
                 "评论内容": StatisticsMode.CONTENT,
-                "评论表情": StatisticsMode.EMOTES,
+                "评论表情(评论数)": StatisticsMode.EMOTES_UNREPEATABLE,
+                "评论表情(个数)": StatisticsMode.EMOTES_REPEATABLE
             }[statistics_type + statistics_property]
             statistics_headers = {
                 "用户性别": ["性别", "出现次数"],
@@ -326,9 +327,11 @@ class MainWindow(QMainWindow):
                 self.ui.statisticsRunButton.setEnabled(True)
 
         try:
+            # 读取参数
             self.read_file_path()
             args = get_args_ui()
 
+            # 根据参数生成文件管道和统计器
             statistician: UsersStatistician | CommentsStatistician
             if args["type"] == "用户":
                 pipe = UsrFilePipe(self.statistics_in_path, "r")
@@ -396,7 +399,8 @@ class MainWindow(QMainWindow):
         elif statistics_type == "评论":
             self.ui.statisticsPropertyBox.clear()
             self.ui.statisticsPropertyBox.addItem("内容")
-            self.ui.statisticsPropertyBox.addItem("表情")
+            self.ui.statisticsPropertyBox.addItem("表情(评论数)")
+            self.ui.statisticsPropertyBox.addItem("评论(个数)")
 
         else:
             return
