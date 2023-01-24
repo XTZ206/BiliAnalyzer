@@ -15,9 +15,9 @@ from bilibili_api.user import User
 from bilianalyzer.config import Configer, Config
 from bilianalyzer.convert import convert_video_id, convert_comments_to_uids
 from bilianalyzer.download import CommentDownloader, UserDownloader
-from bilianalyzer.exceptions import FileNotSelectedException, AnalyzerException
+from bilianalyzer.exceptions import FileNotSelectedException, AnalyzerException, FileFormatException
 from bilianalyzer.log import LoggerSetup
-from bilianalyzer.pipes import CmtFilePipe, UidFilePipe, UsrFilePipe, ResFilePipe
+from bilianalyzer.pipes import CmtFilePipe, UidFilePipe, UsrFilePipe, ResFilePipe, SwdFilePipe
 from bilianalyzer.signals import ui_signals
 from bilianalyzer.statistics import StatisticsMode, UsersStatistician, CommentsStatistician
 from bilianalyzer.ui.ui_about import Ui_AboutWindow
@@ -345,7 +345,7 @@ class MainWindow(QMainWindow):
                                                     progress_signal=ui_signals.updateProgressBar,
                                                     maximum_signal=ui_signals.setProgressBar)
             else:
-                raise FileNotSelectedException("选择错误")
+                raise FileFormatException("统计类型选择错误")
 
             self.logger.info(f"统计开始 统计参数:\n"
                              f"统计类型:{args['type']}\n"
