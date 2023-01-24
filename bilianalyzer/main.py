@@ -144,8 +144,8 @@ class MainWindow(QMainWindow):
             finally:
                 self.ui.downloadRunButton.setEnabled(True)
 
-        # 检查下载准备是否完成
         try:
+            # 获取参数并检查参数是否有效
             args = get_args_ui()
             if not args["oid"].isdigit():
                 raise ValueError("资源ID必须为数字")
@@ -153,16 +153,16 @@ class MainWindow(QMainWindow):
                 raise ValueError("索引范围不能为空")
             if not os.path.exists(self.configer.config.result_path):
                 raise FileNotSelectedException("未指定下载路径")
-
+            # 根据参数生成文件管道
             current_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
             download_out_dir = f"{self.configer.config.result_path}/{args['oid']}"
             download_out_path = f"{download_out_dir}/{current_time}.cmt".replace("\\", "/")
             os.makedirs(download_out_dir, exist_ok=True)
             pipe = CmtFilePipe(download_out_path, "w")
-
+            # 生成下载器
             downloader = CommentDownloader(**args, credential=self.configer.credential,
                                            progress_signal=ui_signals.updateProgressBar)
-
+            # 记录开始下载
             self.logger.info(f"开始下载 下载参数:\n"
                              f"资源ID:{args['oid']}\n"
                              f"资源类型:{args['otype'].name}\n"
@@ -170,14 +170,17 @@ class MainWindow(QMainWindow):
                              f"下载数量:{len(args['indexes'])}\n"
                              f"预计用时:{int(len(args['indexes']) * 1.1)}")
 
+            # 在子线程进行下载
             thread = threading.Thread(target=download)
             thread.start()
 
         except (ValueError, AnalyzerException) as error:
+            # 参数错误 提示并记入日志
             call_msg_box(self, str(error))
             self.logger.warning(str(error))
 
         else:
+            # 参数有效 设置UI
             self.ui.downloadRunButton.setEnabled(False)
             self.ui.downloadProgress.setMaximum(downloader.maximum_progress)
 
@@ -237,7 +240,6 @@ class MainWindow(QMainWindow):
             self.ui.analyzeRunButton.setEnabled(False)
 
     def handle_statistics(self):
-        # TODO: 优化加载顺序
         # TODO: 可调tops值
         def get_args_ui():
 
