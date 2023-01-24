@@ -280,7 +280,8 @@ class MainWindow(QMainWindow):
                 "用户关注": ["关注", "出现次数"],
                 "用户粉丝牌": ["粉丝牌", "出现次数"],
                 "评论内容": ["内容", "出现次数"],
-                "评论表情": ["表情", "出现次数"]
+                "评论表情(评论数)": ["表情", "出现次数"],
+                "评论表情(个数)": ["表情", "出现次数"]
             }[statistics_type + statistics_property]
 
             return {
@@ -400,7 +401,7 @@ class MainWindow(QMainWindow):
             self.ui.statisticsPropertyBox.clear()
             self.ui.statisticsPropertyBox.addItem("内容")
             self.ui.statisticsPropertyBox.addItem("表情(评论数)")
-            self.ui.statisticsPropertyBox.addItem("评论(个数)")
+            self.ui.statisticsPropertyBox.addItem("表情(个数)")
 
         else:
             return
