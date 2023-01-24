@@ -463,7 +463,13 @@
           </item>
           <item row="2" column="1">
            <widget class="QDoubleSpinBox" name="analyzePercentageBox">
+            <property name="minimum">
+             <double>0.010000000000000</double>
+            </property>
             <property name="maximum">
+             <double>100.000000000000000</double>
+            </property>
+            <property name="value">
              <double>100.000000000000000</double>
             </property>
            </widget>
