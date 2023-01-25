@@ -124,7 +124,7 @@ class MainWindow(QMainWindow):
                 start_time = int(time.time())
                 downloader.download()
                 end_time = int(time.time())
-                self.logger.info(f"下载完毕 用时{end_time - start_time}秒")
+                self.logger.info(f"下载完毕 用时{end_time - start_time}秒 共下载数据{len(downloader.storages)}条")
                 if downloader.has_error_logs():
                     self.logger.warning(f"下载错误: \n"
                                         f"{downloader.get_error_logs_serialized()}")
@@ -190,7 +190,7 @@ class MainWindow(QMainWindow):
                 start_time = int(time.time())
                 downloader.download()
                 end_time = int(time.time())
-                self.logger.info(f"分析完毕 用时{end_time - start_time}秒")
+                self.logger.info(f"分析完毕 用时{end_time - start_time}秒 共分析数据{len(downloader.storages)}条")
                 if downloader.has_error_logs():
                     self.logger.warning(f"下载错误: \n"
                                         f"{downloader.get_error_logs_serialized()}")
