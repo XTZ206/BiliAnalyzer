@@ -125,6 +125,9 @@ class CommentDownloader(Downloader):
                 if raw["replies"] is not None:
                     for reply in raw["replies"]:
                         self.add_storage(CommentStorage(raw_data=reply))
+                        if reply["replies"] is not None:
+                            for sub_reply in reply["replies"]:
+                                self.add_storage(CommentStorage(raw_data=sub_reply))
             except ResponseCodeException as error:
                 self.add_error_logs(index, error)
             finally:
