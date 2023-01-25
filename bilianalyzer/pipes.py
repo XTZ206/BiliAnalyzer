@@ -1,4 +1,5 @@
 import abc
+import base64
 import json
 import os
 from collections import OrderedDict
@@ -155,6 +156,20 @@ class ResFilePipe(FilePipe):
         self.content = results
         with open(self.filepath, "w", encoding="utf-8") as f:
             json.dump(self.content, f, indent=4, ensure_ascii=False)
+
+
+class CdtFilePipe:
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+    def load(self) -> str:
+        with open(self.filepath, "rb") as f:
+            content = base64.b64decode(f.read()).decode(encoding="utf-8")
+        return content
+
+    def dump(self, content: str):
+        with open(self.filepath, "wb") as f:
+            f.write(base64.b64encode(content.encode(encoding="utf-8")))
 
 
 class SwdFilePipe(FilePipe):

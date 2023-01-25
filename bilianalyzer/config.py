@@ -1,9 +1,10 @@
-import base64
 import json
 import os
 
 from bilibili_api import Credential
 from bilibili_api.login import login_with_qrcode
+
+from bilianalyzer.pipes import CdtFilePipe
 
 
 class Config:
@@ -59,7 +60,7 @@ class Configer:
         self.export_credential("credential")
 
     def import_credential(self, filepath):
-        file_interface = CredentialFileInterface(filepath)
+        file_interface = CdtFilePipe(filepath)
         content = file_interface.load()
         self.credential: Credential = Credential(**(json.loads(content)))
 
@@ -71,7 +72,7 @@ class Configer:
             "dedeuserid": self.credential.dedeuserid
         }, indent=4, ensure_ascii=False)
 
-        file_interface = CredentialFileInterface(filepath)
+        file_interface = CdtFilePipe(filepath)
         file_interface.dump(content)
 
     # TODO: 自定义扫码窗口
@@ -86,17 +87,3 @@ class Configer:
             "buvid3": self.credential.buvid3,
             "dedeuserid": self.credential.dedeuserid
         }, indent=4)
-
-
-class CredentialFileInterface:
-    def __init__(self, filepath):
-        self.filepath = filepath
-
-    def load(self) -> str:
-        with open(self.filepath, "rb") as f:
-            content = base64.b64decode(f.read()).decode(encoding="utf-8")
-        return content
-
-    def dump(self, content: str):
-        with open(self.filepath, "wb") as f:
-            f.write(base64.b64encode(content.encode(encoding="utf-8")))
