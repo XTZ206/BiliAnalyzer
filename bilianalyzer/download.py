@@ -234,10 +234,3 @@ class UserDownloader(Downloader):
             return sorted(self.storages, key=key_func, reverse=reverse)
         else:
             return list(self.storages)
-
-
-if __name__ == '__main__':
-    with open("credential", "r", encoding="utf-8") as f:
-        cdt = Credential(**(json.load(f)))
-        ud = UserDownloader([User(20165629)], cdt)
-        res = sync(ud.get_raw_data(0))
