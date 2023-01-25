@@ -158,18 +158,19 @@ class ResFilePipe(FilePipe):
             json.dump(self.content, f, indent=4, ensure_ascii=False)
 
 
-class CdtFilePipe:
-    def __init__(self, filepath):
-        self.filepath = filepath
+class CdtFilePipe(FilePipe):
+    def __init__(self, filepath, mode: Literal["r", "w"]):
+        super().__init__(filepath, mode)
 
-    def load(self) -> str:
+    def load(self) -> dict[str, str]:
         with open(self.filepath, "rb") as f:
-            content = base64.b64decode(f.read()).decode(encoding="utf-8")
-        return content
+            self.content = base64.b64decode(f.read()).decode(encoding="utf-8")
+        return json.loads(self.content)
 
-    def dump(self, content: str):
+    def dump(self, content: dict[str, str]) -> None:
+        self.content = json.dumps(content, indent=4, ensure_ascii=False)
         with open(self.filepath, "wb") as f:
-            f.write(base64.b64encode(content.encode(encoding="utf-8")))
+            f.write(base64.b64encode(self.content.encode(encoding="utf-8")))
 
 
 class SwdFilePipe(FilePipe):

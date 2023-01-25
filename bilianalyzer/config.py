@@ -60,20 +60,19 @@ class Configer:
         self.export_credential("credential")
 
     def import_credential(self, filepath):
-        file_interface = CdtFilePipe(filepath)
-        content = file_interface.load()
-        self.credential: Credential = Credential(**(json.loads(content)))
+        pipe = CdtFilePipe(filepath, "r")
+        self.credential: Credential = Credential(**pipe.load())
 
     def export_credential(self, filepath):
-        content = json.dumps({
+        content = {
             "sessdata": self.credential.sessdata,
             "bili_jct": self.credential.bili_jct,
             "buvid3": self.credential.buvid3,
             "dedeuserid": self.credential.dedeuserid
-        }, indent=4, ensure_ascii=False)
+        }
 
-        file_interface = CdtFilePipe(filepath)
-        file_interface.dump(content)
+        pipe = CdtFilePipe(filepath, "w")
+        pipe.dump(content)
 
     # TODO: 自定义扫码窗口
     def scan_credential(self):
