@@ -41,22 +41,27 @@ class Configer:
         self.dump_to_file()
 
     def load_from_file(self):
+        # 读取设置文件
         if os.path.exists("config.json"):
             with open("config.json", "r", encoding="utf-8") as f:
                 self.config = Config(**(json.load(f)))
         else:
             self.config = Config()
 
+        # 读取凭证文件
         if os.path.exists("credential"):
             self.import_credential("credential")
         else:
             self.credential = Credential()
 
     def dump_to_file(self):
+        # 写入设置文件
         with open("config.json", "w", encoding="utf-8") as f:
             json.dump({
                 "result_path": self.config.result_path
             }, f, indent=4, ensure_ascii=False)
+
+        # 写入凭证文件
         self.export_credential("credential")
 
     def import_credential(self, filepath):
