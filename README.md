@@ -17,8 +17,8 @@
 
 ```commandline
 git clone https://github.com/XTZ206/BiliAnalyzer.git
-pip install -r requirements.txt
 cd .\BiliAnalyzer
+pip install -r requirements.txt
 python bilianalyzer\bilibili.py
 ```
 
