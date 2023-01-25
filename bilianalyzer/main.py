@@ -121,6 +121,8 @@ class MainWindow(QMainWindow):
 
         def download():
             try:
+                self.ui.downloadRunButton.setEnabled(False)
+                self.ui.downloadProgress.setMaximum(downloader.maximum_progress)
                 start_time = int(time.time())
                 downloader.download()
                 end_time = int(time.time())
@@ -179,14 +181,12 @@ class MainWindow(QMainWindow):
             call_msg_box(self, str(error))
             self.logger.warning(str(error))
 
-        else:
-            # 参数有效 设置UI
-            self.ui.downloadRunButton.setEnabled(False)
-            self.ui.downloadProgress.setMaximum(downloader.maximum_progress)
-
     def handle_analyze(self):
         def analyze():
             try:
+                self.ui.analyzeProgress.setValue(0)
+                self.ui.analyzeProgress.setMaximum(downloader.maximum_progress)
+                self.ui.analyzeRunButton.setEnabled(False)
                 start_time = int(time.time())
                 downloader.download()
                 end_time = int(time.time())
@@ -233,11 +233,6 @@ class MainWindow(QMainWindow):
 
         except AnalyzerException as error:
             call_msg_box(self, str(error))
-
-        else:
-            self.ui.analyzeProgress.setValue(0)
-            self.ui.analyzeProgress.setMaximum(downloader.maximum_progress)
-            self.ui.analyzeRunButton.setEnabled(False)
 
     def handle_statistics(self):
         # TODO: 可调tops值
@@ -294,6 +289,9 @@ class MainWindow(QMainWindow):
 
         def statistics():
             try:
+                self.ui.statisticsProgress.setValue(0)
+                self.ui.statisticsProgress.setMaximum(100)
+                self.ui.statisticsRunButton.setEnabled(False)
                 start_time = int(time.time())
                 if args["type"] == "用户":
                     statistics_result: OrderedDict = \
@@ -360,11 +358,6 @@ class MainWindow(QMainWindow):
             thread.start()
         except AnalyzerException as error:
             call_msg_box(self, str(error))
-
-        else:
-            self.ui.statisticsProgress.setValue(0)
-            self.ui.statisticsProgress.setMaximum(100)
-            self.ui.statisticsRunButton.setEnabled(False)
 
     def show_statistics_result(self, result: OrderedDict, headers: list[str]):
         self.ui.statisticsTable.setRowCount(len(result))
