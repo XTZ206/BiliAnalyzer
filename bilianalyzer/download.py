@@ -125,6 +125,9 @@ class CommentDownloader(Downloader):
                 if raw["replies"] is not None:
                     for reply in raw["replies"]:
                         self.add_storage(CommentStorage(raw_data=reply))
+                        if reply["replies"] is not None:
+                            for sub_reply in reply["replies"]:
+                                self.add_storage(CommentStorage(raw_data=sub_reply))
             except ResponseCodeException as error:
                 self.add_error_logs(index, error)
             finally:
@@ -234,10 +237,3 @@ class UserDownloader(Downloader):
             return sorted(self.storages, key=key_func, reverse=reverse)
         else:
             return list(self.storages)
-
-
-if __name__ == '__main__':
-    with open("credential", "r", encoding="utf-8") as f:
-        cdt = Credential(**(json.load(f)))
-        ud = UserDownloader([User(20165629)], cdt)
-        res = sync(ud.get_raw_data(0))

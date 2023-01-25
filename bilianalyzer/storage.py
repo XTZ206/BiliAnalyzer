@@ -27,7 +27,7 @@ class CommentStorage:
         从API返回结果/cmt文件读取结果生成储存于内存中的评论数据格式
         Args:
             raw_data    (RawData)   : API返回结果，与cmt_file同时传入时覆盖cmt_file
-            cmt_file    (dict)      : .cmt文件读取结果，不能与raw_data同时为空
+            cmt_file    (dict)      : .cmt文件读取结果，与raw_data同时为空时生成空对象
         """
         if raw_data is not None:
             self.rpid: int = raw_data["rpid"]
@@ -100,7 +100,7 @@ class UserStorage:
         从API返回结果/usr文件读取结果生成储存于内存中的用户数据格式
         Args:
             raw_data    (RawData)   : API返回结果，与usr_file同时传入时覆盖usr_file
-            usr_file    (dict)      : .usr文件读取结果，不能与raw_data同时为空
+            usr_file    (dict)      : .usr文件读取结果，与raw_data同时为空时生成空对象
         """
         if raw_data is not None:
 
