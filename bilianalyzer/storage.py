@@ -110,7 +110,7 @@ class UserStorage:
             self.level: str = "未知"
             self.vip: str = "未知"
             self.tags: list[str] = []
-            self.pendant: str = "无名牌"
+            self.pendant: str = "无装扮"
             self.nameplate: str = "无名牌"
             self.sex: str = "保密"
             self.birthday: str = "未知"
@@ -144,9 +144,11 @@ class UserStorage:
 
             # 解析用户隐私数据
             if raw_basic_info["sex"] is not None:
-                self.sex = raw_basic_info["sex"]
+                if raw_basic_info["sex"] != "":
+                    self.sex = raw_basic_info["sex"]
             if raw_basic_info["birthday"] is not None:
-                self.birthday = raw_basic_info["birthday"]
+                if raw_basic_info["birthday"] != "":
+                    self.birthday = raw_basic_info["birthday"]
             if raw_basic_info["school"] is not None:
                 if raw_basic_info["school"]["name"] != "":
                     self.school = raw_basic_info["school"]["name"]
@@ -201,7 +203,7 @@ class UserStorage:
             self.level: str = "未知"
             self.vip: str = "未知"
             self.tags: list[str] = []
-            self.pendant: str = "无名牌"
+            self.pendant: str = "无装扮"
             self.nameplate: str = "无名牌"
             self.sex: str = "保密"
             self.birthday: str = "未知"
