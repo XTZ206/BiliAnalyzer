@@ -13,13 +13,16 @@
 
 克隆或[下载](https://github.com/XTZ206/BiliAnalyzer/archive/main.zip)本代码仓库
 并使用pip安装依赖
+
+运行前务必把BiliAnalyzer所在文件夹添加至Python环境
+
 启动脚本
 
 ```commandline
 git clone https://github.com/XTZ206/BiliAnalyzer.git
 cd .\BiliAnalyzer
 pip install -r requirements.txt
-python bilianalyzer\bilibili.py
+python bilianalyzer\main.py
 ```
 
 ### 自行编译
