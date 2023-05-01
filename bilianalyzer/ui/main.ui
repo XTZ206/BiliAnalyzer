@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>哔哩哔哩评论下载器</string>
+   <string>哔哩哔哩成分查询机</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -785,7 +785,7 @@
      <x>0</x>
      <y>0</y>
      <width>700</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="fileMenu">
