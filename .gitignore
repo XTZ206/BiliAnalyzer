@@ -1,0 +1,7 @@
+# IDE and Editor Files
+.idea/
+.vscode/
+
+# Temporary Files
+temp/
+*.tmp
