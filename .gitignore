@@ -5,3 +5,7 @@
 # Temporary Files
 temp/
 *.tmp
+
+# Credentials
+credential.json
+
