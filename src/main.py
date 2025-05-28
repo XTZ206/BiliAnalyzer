@@ -34,6 +34,12 @@ def main() -> None:
                                      description="Fetch and Analyze Bilibili Comments")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    auth_parser = subparsers.add_parser("auth", help="Authenticate BiliAnalyzer with Bilibili Cookies")
+    auth_subparsers = auth_parser.add_subparsers(dest="auth_command", required=True)
+    auth_subparsers.add_parser("status", help="Check Authentication Status of BiliAnalyzer")
+    auth_subparsers.add_parser("login", help="Login and Store Cookies for BiliAnalyzer")
+    auth_subparsers.add_parser("logout", help="Logout BiliAnalyzer and Remove Stored Cookies")
+
     fetch_parser = subparsers.add_parser("fetch",
                                          help="Fetch comments for a video with given BVID")
     fetch_parser.add_argument("bvid", type=str,
@@ -47,6 +53,35 @@ def main() -> None:
     args = parser.parse_args()
 
     match args.command:
+        case "auth":
+            match args.auth_command:
+                case "status":
+                    credential: Optional[Credential] = None
+                    with open("credential.json", "r") as f:
+                        credential = Credential(**json.load(f))
+                    if credential is None or credential.sessdata is None or credential.bili_jct is None:
+                        print("BiliAnalyzer Not Authenticated")
+                    elif not sync(credential.check_valid()):
+                        print("BiliAnalyzer Authentication Expired")
+                    else:
+                        print("BiliAnalyzer Authenticated Successfully")
+
+                case "login":
+                    sessdata: str = input("Please enter your sessdata cookie for bilibili: ")
+                    bili_jct: str = input("Please enter your bili_jct cookie for bilibili: ")
+                    credential = Credential(sessdata=sessdata, bili_jct=bili_jct)
+                    with open("credential.json", "w") as f:
+                        json.dump({"sessdata": sessdata, "bili_jct": bili_jct}, f, ensure_ascii=False, indent=4)
+                    if sync(credential.check_valid()):
+                        print("BiliAnalyzer Authenticated Successfully")
+                    else:
+                        print("BiliAnalyzer Authentication Failed. Please check your cookies.")
+
+                case "logout":
+                    with open("credential.json", "w") as f:
+                        json.dump({"sessdata": None, "bili_jct": None}, f, ensure_ascii=False, indent=4)
+                    print("BiliAnalyzer Logged Out Successfully")
+
         case "fetch":
             with open("credential.json", "r") as f:
                 credential = Credential(**json.load(f))
