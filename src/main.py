@@ -34,21 +34,27 @@ def main() -> None:
                                      description="Fetch and Analyze Bilibili Comments")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # Authentication commands
     auth_parser = subparsers.add_parser("auth", help="Authenticate BiliAnalyzer with Bilibili Cookies")
     auth_subparsers = auth_parser.add_subparsers(dest="auth_command", required=True)
     auth_subparsers.add_parser("status", help="Check Authentication Status of BiliAnalyzer")
     auth_subparsers.add_parser("login", help="Login and Store Cookies for BiliAnalyzer")
     auth_subparsers.add_parser("logout", help="Logout BiliAnalyzer and Remove Stored Cookies")
 
-    fetch_parser = subparsers.add_parser("fetch",
-                                         help="Fetch comments for a video with given BVID")
-    fetch_parser.add_argument("bvid", type=str,
-                              help="BVID of the video")
+    # Fetch Commands
+    fetch_parser = subparsers.add_parser("fetch", help="Fetch comments for a video with given BVID")
+    fetch_parser.add_argument("bvid", type=str, help="BVID of the video")
+    fetch_parser.add_argument("-n", "--limit", type=int, default=10,
+                              help="Limit the maximum number of pages to fetch (default: 10)")
+    fetch_parser.add_argument("-o", "--output", type=str, default="comments.json",
+                              help="Output filepath for comments (default: comments.json)")
+    fetch_parser.add_argument("--no-auth", action="store_true",
+                              help="Skip authentication and fetch comments without credentials")
+    # TODO: fetch sub replies
 
-    analyze_parser = subparsers.add_parser("analyze",
-                                           help="Analyze comments from a file")
-    analyze_parser.add_argument("input", type=str,
-                                help="Input file with comments")
+    # Analyze Commands
+    analyze_parser = subparsers.add_parser("analyze", help="Analyze comments from a file")
+    analyze_parser.add_argument("input", type=str, help="Input file with comments")
 
     args = parser.parse_args()
 
@@ -83,10 +89,14 @@ def main() -> None:
                     print("BiliAnalyzer Logged Out Successfully")
 
         case "fetch":
-            with open("credential.json", "r") as f:
-                credential = Credential(**json.load(f))
-            replies = sync(get_replies(args.bvid, credential=credential))
-            with open(f"comments_{args.bvid}.json", "w", encoding="utf-8") as f:
+            if args.no_auth:
+                credential = None
+            else:
+                with open("credential.json", "r") as f:
+                    credential = Credential(**json.load(f))
+            replies = sync(get_replies(args.bvid, limit=args.limit, credential=credential))
+
+            with open(args.output, "w", encoding="utf-8") as f:
                 json.dump(replies, f, ensure_ascii=False, indent=4)
 
         case "analyze":
