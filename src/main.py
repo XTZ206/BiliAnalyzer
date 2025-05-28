@@ -29,6 +29,19 @@ async def get_replies(bvid: str, limit: int = 10, credential: Optional[Credentia
     return replies
 
 
+def get_users(replies: list[dict]) -> list[dict]:
+    users: list[dict] = []
+    names: set[str] = set()
+    for reply in replies:
+        user = reply.get("member", {})
+        name = user.get("uname", None)
+        if name is None or name in names:
+            continue
+        names.add(name)
+        users.append(user)
+    return users
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="bilianalyzer", usage="%(prog)s [command]",
                                      description="Fetch and Analyze Bilibili Comments")
@@ -55,6 +68,7 @@ def main() -> None:
     # Analyze Commands
     analyze_parser = subparsers.add_parser("analyze", help="Analyze comments from a file")
     analyze_parser.add_argument("input", type=str, help="Input file with comments")
+    # TODO: store analysis results in a file
 
     args = parser.parse_args()
 
@@ -102,35 +116,46 @@ def main() -> None:
         case "analyze":
             with open(args.input, "r", encoding="utf-8") as f:
                 replies = json.load(f)
-            users: dict[str, dict] = {}
+            users = get_users(replies)
             sexes: dict[str, int] = {"男": 0, "女": 0, "保密": 0}
             pendants: dict[str, int] = {}
+            locations: dict[str, int] = {}
+
+            for user in users:
+                if "sex" in user:
+                    sexes[user["sex"]] += 1
+                if "pendant" in user and "name" in user["pendant"] and user["pendant"]["name"]:
+                    pendants[user["pendant"]["name"]] = pendants.get(user["pendant"]["name"], 0) + 1
 
             for reply in replies:
-                member = reply.get("member", {})
-                name = member.get("uname", "未知")
-                users[name] = member
-
-            for name, user in users.items():
-                sexes[user.get("sex", "保密")] += 1
-                pendant_name = user.get("pendant", {}).get("name", "")
-                if pendant_name:
-                    pendants[pendant_name] = pendants.get(pendant_name, 0) + 1
+                if "reply_control" in reply and "location" in reply["reply_control"]:
+                    location = reply["reply_control"]["location"]
+                    if location.startswith("IP属地："):
+                        location = location[len("IP属地："):]
+                    locations[location] = locations.get(location, 0) + 1
 
             print(f"共分析 {len(replies)} 条评论， {len(users)} 位用户")
             print("用户性别分布：")
-            print(f"男: {sexes['男']}, 女: {sexes['女']}, 保密: {sexes['保密']}")
+            print(f"男: {sexes['男']}\n女: {sexes['女']}\n保密: {sexes['保密']}")
+            print()
 
             if len(pendants) == 0:
-                print("没有用户装扮数据")
+                print("没有用户展示了装扮")
             else:
                 print("用户装扮分布：")
-
                 top_n = 5  # 可根据需要修改n的值
                 for pendant, count in sorted(pendants.items(), key=lambda x: x[1], reverse=True)[:top_n]:
                     print(f"{pendant}: {count} 次")
                 if (len(pendants) > top_n):
                     print(f"... 其他{len(pendants) - top_n}个装扮")
+            print()
+
+            print("评论IP属地分布：")
+            top_n = 5  # 可根据需要修改n的值
+            for location, count in sorted(locations.items(), key=lambda x: x[1], reverse=True)[:top_n]:
+                print(f"{location}: {count} 次")
+            if (len(locations) > top_n):
+                print(f"... 其他{len(locations) - top_n}个IP属地")
 
 
 if __name__ == "__main__":
