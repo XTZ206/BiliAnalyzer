@@ -1,11 +1,15 @@
 # IDE and Editor Files
-.idea/
-.vscode/
+/.idea
+/.vscode
+
+# Environment and Dependencies
+/.venv
 
 # Temporary Files
-temp/
+/temp
 *.tmp
+/BV*.json
 
 # Credentials
-credential.json
+/credential.json
 
