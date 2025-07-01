@@ -1,45 +1,10 @@
-import asyncio
 import argparse
 import json
-from typing import Optional
 
-from bilibili_api import sync, bvid2aid, Credential
-from bilibili_api.video import Video
-from bilibili_api.comment import get_comments, CommentResourceType
-
-
-async def get_replies(bvid: str, limit: int = 10, credential: Optional[Credential] = None) -> list[dict]:
-    replies = []
-    page = 1
-    count = 0
-    while True:
-        if page > 1:
-            await asyncio.sleep(1)
-        comments = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, page, credential=credential)
-        if not comments or "replies" not in comments or "page" not in comments:
-            break
-        if not comments["replies"] or not comments["page"]:
-            break
-        replies.extend(comments["replies"])
-        count += comments["page"]["size"]
-        page += 1
-        if page > limit or count > comments["page"]["count"]:
-            break
-
-    return replies
-
-
-def get_users(replies: list[dict]) -> list[dict]:
-    users: list[dict] = []
-    names: set[str] = set()
-    for reply in replies:
-        user = reply.get("member", {})
-        name = user.get("uname", None)
-        if name is None or name in names:
-            continue
-        names.add(name)
-        users.append(user)
-    return users
+import auth
+from fetch import *
+from analyze import *
+from utils import *
 
 
 def main() -> None:
@@ -63,7 +28,6 @@ def main() -> None:
                               help="Output filepath for comments (default: comments.json)")
     fetch_parser.add_argument("--no-auth", action="store_true",
                               help="Skip authentication and fetch comments without credentials")
-    # TODO: fetch sub replies
 
     # Analyze Commands
     analyze_parser = subparsers.add_parser("analyze", help="Analyze comments from a file")
@@ -76,86 +40,55 @@ def main() -> None:
         case "auth":
             match args.auth_command:
                 case "status":
-                    credential: Optional[Credential] = None
-                    with open("credential.json", "r") as f:
-                        credential = Credential(**json.load(f))
-                    if credential is None or credential.sessdata is None or credential.bili_jct is None:
-                        print("BiliAnalyzer Not Authenticated")
-                    elif not sync(credential.check_valid()):
-                        print("BiliAnalyzer Authentication Expired")
-                    else:
-                        print("BiliAnalyzer Authenticated Successfully")
+                    print(auth.check())
 
                 case "login":
                     sessdata: str = input("Please enter your sessdata cookie for bilibili: ")
                     bili_jct: str = input("Please enter your bili_jct cookie for bilibili: ")
-                    credential = Credential(sessdata=sessdata, bili_jct=bili_jct)
-                    with open("credential.json", "w") as f:
-                        json.dump({"sessdata": sessdata, "bili_jct": bili_jct}, f, ensure_ascii=False, indent=4)
-                    if sync(credential.check_valid()):
-                        print("BiliAnalyzer Authenticated Successfully")
-                    else:
-                        print("BiliAnalyzer Authentication Failed. Please check your cookies.")
+                    try:
+                        credential = auth.login_from_cookies(sessdata=sessdata, bili_jct=bili_jct)
+                        with open("credential.json", "w") as f:
+                            json.dump({"sessdata": sessdata, "bili_jct": bili_jct}, f, ensure_ascii=False, indent=4)
+                        print("BiliAnalyzer Logged In Successfully")
+                    except ValueError as error:
+                        print(f"Login Failed: {error}")
+                        return
 
                 case "logout":
-                    with open("credential.json", "w") as f:
-                        json.dump({"sessdata": None, "bili_jct": None}, f, ensure_ascii=False, indent=4)
+                    auth.logout()
                     print("BiliAnalyzer Logged Out Successfully")
 
         case "fetch":
-            if args.no_auth:
-                credential = None
-            else:
-                with open("credential.json", "r") as f:
-                    credential = Credential(**json.load(f))
-            replies = sync(get_replies(args.bvid, limit=args.limit, credential=credential))
-
-            with open(args.output, "w", encoding="utf-8") as f:
-                json.dump(replies, f, ensure_ascii=False, indent=4)
+            credential = auth.login_from_stored(fake=args.no_auth)
+            replies = fetch_replies(args.bvid, limit=args.limit, credential=credential)
+            store_replies(replies, filepath=args.output)
 
         case "analyze":
-            with open(args.input, "r", encoding="utf-8") as f:
-                replies = json.load(f)
-            users = get_users(replies)
-            sexes: dict[str, int] = {"男": 0, "女": 0, "保密": 0}
-            pendants: dict[str, int] = {}
-            locations: dict[str, int] = {}
+            replies = load_replies(filepath=args.input)
+            members = fetch_members(replies)
 
-            for user in users:
-                if "sex" in user:
-                    sexes[user["sex"]] += 1
-                if "pendant" in user and "name" in user["pendant"] and user["pendant"]["name"]:
-                    pendants[user["pendant"]["name"]] = pendants.get(user["pendant"]["name"], 0) + 1
+            sexes: Counter[str] = analyze_sexes(members)
+            pendants: Counter[str] = analyze_pendants(members)
+            locations: Counter[str] = analyze_locations(replies)
 
-            for reply in replies:
-                if "reply_control" in reply and "location" in reply["reply_control"]:
-                    location = reply["reply_control"]["location"]
-                    if location.startswith("IP属地："):
-                        location = location[len("IP属地："):]
-                    locations[location] = locations.get(location, 0) + 1
-
-            print(f"共分析 {len(replies)} 条评论， {len(users)} 位用户")
+            print(f"共分析 {len(replies)} 条评论， {len(members)} 位用户")
             print("用户性别分布：")
             print(f"男: {sexes['男']}\n女: {sexes['女']}\n保密: {sexes['保密']}")
             print()
 
+            print("用户装扮分布：")
+            print(f"共计{len(pendants)}种装扮")
             if len(pendants) == 0:
                 print("没有用户展示了装扮")
             else:
-                print("用户装扮分布：")
-                top_n = 5  # 可根据需要修改n的值
-                for pendant, count in sorted(pendants.items(), key=lambda x: x[1], reverse=True)[:top_n]:
+                for pendant, count in pendants.most_common(5):
                     print(f"{pendant}: {count} 次")
-                if (len(pendants) > top_n):
-                    print(f"... 其他{len(pendants) - top_n}个装扮")
             print()
 
             print("评论IP属地分布：")
-            top_n = 5  # 可根据需要修改n的值
-            for location, count in sorted(locations.items(), key=lambda x: x[1], reverse=True)[:top_n]:
+            print(f"共计{len(locations)}种属地分布")
+            for location, count in locations.most_common(5):
                 print(f"{location}: {count} 次")
-            if (len(locations) > top_n):
-                print(f"... 其他{len(locations) - top_n}个IP属地")
 
 
 if __name__ == "__main__":

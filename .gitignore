@@ -5,6 +5,11 @@
 # Environment and Dependencies
 /.venv
 
+# Python Files
+*.pyc
+*.pyo
+__pycache__/
+
 # Temporary Files
 /temp
 *.tmp
