@@ -15,7 +15,7 @@ def analyze_pendants(members: Collection[Member]) -> Counter[str]:
             continue
         pendant: str = member.get("pendant", {}).get("name", "").strip()
         if pendant:
-            counter.update(pendant)
+            counter[pendant] += 1
     return counter
 
 
@@ -29,5 +29,5 @@ def analyze_locations(replies: Collection[Reply]) -> Counter[str]:
             continue
         location: str = reply["reply_control"]["location"]
         if location.startswith(prefix):
-            counter.update(location[len(prefix):])
+            counter[location[len(prefix):]] += 1
     return counter

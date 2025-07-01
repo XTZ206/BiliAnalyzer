@@ -87,7 +87,7 @@ def main() -> None:
 
             print("评论IP属地分布：")
             print(f"共计{len(locations)}种属地分布")
-            for location, count in pendants.most_common(5):
+            for location, count in locations.most_common(5):
                 print(f"{location}: {count} 次")
 
 
