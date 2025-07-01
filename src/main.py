@@ -3,6 +3,7 @@ import json
 
 import auth
 from fetch import *
+from analyze import *
 from utils import *
 
 
@@ -66,45 +67,28 @@ def main() -> None:
             replies = load_replies(filepath=args.input)
             members = fetch_members(replies)
 
-            sexes: dict[str, int] = {"男": 0, "女": 0, "保密": 0}
-            pendants: dict[str, int] = {}
-            locations: dict[str, int] = {}
-
-            for member in members:
-                if "sex" in member:
-                    sexes[member["sex"]] += 1
-                if "pendant" in member and "name" in member["pendant"] and member["pendant"]["name"]:
-                    pendants[member["pendant"]["name"]] = pendants.get(member["pendant"]["name"], 0) + 1
-
-            for reply in replies:
-                if "reply_control" in reply and "location" in reply["reply_control"]:
-                    location = reply["reply_control"]["location"]
-                    if location.startswith("IP属地："):
-                        location = location[len("IP属地："):]
-                    locations[location] = locations.get(location, 0) + 1
+            sexes: Counter[str] = analyze_sexes(members)
+            pendants: Counter[str] = analyze_pendants(members)
+            locations: Counter[str] = analyze_locations(replies)
 
             print(f"共分析 {len(replies)} 条评论， {len(members)} 位用户")
             print("用户性别分布：")
             print(f"男: {sexes['男']}\n女: {sexes['女']}\n保密: {sexes['保密']}")
             print()
 
+            print("用户装扮分布：")
+            print(f"共计{len(pendants)}种装扮")
             if len(pendants) == 0:
                 print("没有用户展示了装扮")
             else:
-                print("用户装扮分布：")
-                top_n = 5  # 可根据需要修改n的值
-                for pendant, count in sorted(pendants.items(), key=lambda x: x[1], reverse=True)[:top_n]:
+                for pendant, count in pendants.most_common(5):
                     print(f"{pendant}: {count} 次")
-                if (len(pendants) > top_n):
-                    print(f"... 其他{len(pendants) - top_n}个装扮")
             print()
 
             print("评论IP属地分布：")
-            top_n = 5  # 可根据需要修改n的值
-            for location, count in sorted(locations.items(), key=lambda x: x[1], reverse=True)[:top_n]:
+            print(f"共计{len(locations)}种属地分布")
+            for location, count in pendants.most_common(5):
                 print(f"{location}: {count} 次")
-            if (len(locations) > top_n):
-                print(f"... 其他{len(locations) - top_n}个IP属地")
 
 
 if __name__ == "__main__":
