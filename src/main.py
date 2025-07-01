@@ -2,14 +2,20 @@ import argparse
 import json
 
 import auth
-from fetch import *
-from analyze import *
-from utils import *
-
+from fetch import fetch_replies
+from analyze import analyze_comments
+from utils import store_replies, load_replies
+from config import load_config, save_config, get_config_value
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="bilianalyzer", usage="%(prog)s [command]",
-                                     description="Fetch and Analyze Bilibili Comments")
+    # Load configuration
+    config = load_config()
+    
+    parser = argparse.ArgumentParser(
+        prog="bilianalyzer",
+        usage="%(prog)s [command]",
+        description="Fetch and Analyze Bilibili Comments"
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Authentication commands
@@ -19,20 +25,46 @@ def main() -> None:
     auth_subparsers.add_parser("login", help="Login and Store Cookies for BiliAnalyzer")
     auth_subparsers.add_parser("logout", help="Logout BiliAnalyzer and Remove Stored Cookies")
 
-    # Fetch Commands
+    # Configuration commands
+    config_parser = subparsers.add_parser("config", help="Manage BiliAnalyzer settings")
+    config_subparsers = config_parser.add_subparsers(dest="config_command", required=True)
+    
+    # Set configuration item
+    set_parser = config_subparsers.add_parser("set", help="Set a configuration value")
+    set_parser.add_argument("key", type=str, help="Config key (e.g., output_dir, page_size, sort_order)")
+    set_parser.add_argument("value", type=str, help="Config value")
+    
+    # View configuration
+    show_parser = config_subparsers.add_parser("show", help="Show current configuration")
+    show_parser.add_argument("--key", type=str, help="Specific config key to show")
+
+    # Fetch comments command
     fetch_parser = subparsers.add_parser("fetch", help="Fetch comments for a video with given BVID")
     fetch_parser.add_argument("bvid", type=str, help="BVID of the video")
-    fetch_parser.add_argument("-n", "--limit", type=int, default=10,
-                              help="Limit the maximum number of pages to fetch (default: 10)")
-    fetch_parser.add_argument("-o", "--output", type=str, default="comments.json",
-                              help="Output filepath for comments (default: comments.json)")
+    fetch_parser.add_argument("-n", "--limit", type=int, default=config.get("page_size", 20),
+                              help=f"Limit the maximum number of pages to fetch (default: {config.get('page_size', 20)})")
+    fetch_parser.add_argument("-o", "--output", type=str, default=config.get("output_dir", "output/") + "comments.json",
+                              help=f"Output filepath for comments (default: {config.get('output_dir', 'output/')}comments.json)")
     fetch_parser.add_argument("--no-auth", action="store_true",
                               help="Skip authentication and fetch comments without credentials")
+    fetch_parser.add_argument("--sort", type=str, default=config.get("sort_order", "time"), choices=["time", "like"],
+                              help=f"Sort comments by time or like (default: {config.get('sort_order', 'time')})")
+    fetch_parser.add_argument("--min-likes", type=int, default=0,
+                              help="Minimum likes required for comments")
+    fetch_parser.add_argument("--start-date", type=str,
+                              help="Start date (YYYY-MM-DD) to filter comments")
+    fetch_parser.add_argument("--end-date", type=str,
+                              help="End date (YYYY-MM-DD) to filter comments")
 
-    # Analyze Commands
+    # Analyze comments command
     analyze_parser = subparsers.add_parser("analyze", help="Analyze comments from a file")
     analyze_parser.add_argument("input", type=str, help="Input file with comments")
-    # TODO: store analysis results in a file
+    analyze_parser.add_argument("-o", "--output", type=str, default=config.get("output_dir", "output/") + "analysis/",
+                              help=f"Output directory for analysis results (default: {config.get('output_dir', 'output/')}analysis/)")
+    analyze_parser.add_argument("--start-date", type=str,
+                              help="Start date (YYYY-MM-DD) to analyze comments")
+    analyze_parser.add_argument("--end-date", type=str,
+                              help="End date (YYYY-MM-DD) to analyze comments")
 
     args = parser.parse_args()
 
@@ -58,38 +90,41 @@ def main() -> None:
                     auth.logout()
                     print("BiliAnalyzer Logged Out Successfully")
 
+        case "config":
+            match args.config_command:
+                case "set":
+                    config[args.key] = args.value
+                    save_config(config)
+                    print(f"Config '{args.key}' set to '{args.value}'")
+                
+                case "show":
+                    if args.key:
+                        print(f"{args.key}: {config.get(args.key, 'Not set')}")
+                    else:
+                        print(json.dumps(config, indent=2, ensure_ascii=False))
+
         case "fetch":
             credential = auth.login_from_stored(fake=args.no_auth)
-            replies = fetch_replies(args.bvid, limit=args.limit, credential=credential)
+            replies = fetch_replies(
+                args.bvid,
+                limit=args.limit,
+                credential=credential,
+                sort=args.sort,
+                min_likes=args.min_likes,
+                start_date=args.start_date,
+                end_date=args.end_date
+            )
             store_replies(replies, filepath=args.output)
+            print(f"Fetched {len(replies)} comments and saved to {args.output}")
 
         case "analyze":
-            replies = load_replies(filepath=args.input)
-            members = fetch_members(replies)
-
-            sexes: Counter[str] = analyze_sexes(members)
-            pendants: Counter[str] = analyze_pendants(members)
-            locations: Counter[str] = analyze_locations(replies)
-
-            print(f"共分析 {len(replies)} 条评论， {len(members)} 位用户")
-            print("用户性别分布：")
-            print(f"男: {sexes['男']}\n女: {sexes['女']}\n保密: {sexes['保密']}")
-            print()
-
-            print("用户装扮分布：")
-            print(f"共计{len(pendants)}种装扮")
-            if len(pendants) == 0:
-                print("没有用户展示了装扮")
-            else:
-                for pendant, count in pendants.most_common(5):
-                    print(f"{pendant}: {count} 次")
-            print()
-
-            print("评论IP属地分布：")
-            print(f"共计{len(locations)}种属地分布")
-            for location, count in locations.most_common(5):
-                print(f"{location}: {count} 次")
-
+            analyze_comments(
+                comments_file=args.input,
+                output_dir=args.output,
+                start_date=args.start_date,
+                end_date=args.end_date
+            )
+            print(f"Analysis results saved to {args.output}")
 
 if __name__ == "__main__":
     main()

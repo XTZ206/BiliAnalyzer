@@ -1,68 +1,52 @@
 import json
-import os
+from pathlib import Path
+from typing import Optional
+from bilibili_api import Credential
 
-from bilibili_api import Credential, sync
+def login_from_cookies(sessdata: Optional[str] = None, bili_jct: Optional[str] = None) -> Credential:
+    #Create a Credential object from cookies
+    if not sessdata or not bili_jct:
+        raise ValueError("sessdata and bili_jct are required")
+    return Credential(sessdata=sessdata, bili_jct=bili_jct)
 
-from utils import *
-
-
-def check() -> str:
-    # Check if the credential file exists
-    if not os.path.exists("credential.json"):
-        return "Authentication File Not Found. Please Login First."
-
+def login_from_file(filepath: Path) -> Credential:
+    #Load authentication information from a file
     try:
-        credential = login_from_stored()
-    except ValueError as e:
-        return str(e)
-
-    if not sync(credential.check_valid()):
-        return "Authentication Expired. Please Login Again."
-
-    return "BiliAnalyzer Authenticated Successfully"
-
-
-def login_from_cookies(sessdata: str, bili_jct: str) -> Credential:
-    credential = Credential(sessdata=sessdata, bili_jct=bili_jct)
-    if not sync(credential.check_valid()):
-        raise ValueError("Invalid Credential: Please Check Your Cookies")
-
-    return credential
-
-
-def login_from_file(filepath: FilePath) -> Credential:
-    if not os.path.exists(filepath):
-        raise FileNotFoundError(f"Credential File {filepath} Not Found")
-
-    with open(filepath, 'r') as f:
-        cookies = json.load(f)
-    if "sessdata" not in cookies:
-        raise ValueError("Credential File Invalid: Missing 'sessdata' Cookie")
-    if "bili_jct" not in cookies:
-        raise ValueError("Credential File Invalid: Missing 'bili_jct' Cookie")
-
-    cookies: Cookies = {"sessdata": cookies["sessdata"], "bili_jct": cookies["bili_jct"]}
-    return login_from_cookies(**cookies)
-
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return login_from_cookies(
+            sessdata=data.get("sessdata"),
+            bili_jct=data.get("bili_jct")
+        )
+    except Exception as e:
+        print(f"Failed to load credentials from {filepath}: {e}")
+        return None
 
 def login_from_stored(fake: bool = False) -> Credential:
+    #Load authentication information from stored file or create fake credentials
     if fake:
-        return Credential()
-    if not os.path.exists("credential.json"):
-        return Credential()
+        return Credential(sessdata="", bili_jct="", buvid3="")
+    try:
+        return login_from_file(Path("credential.json"))
+    except Exception:
+        print("Warning: No valid credentials found, using fake credentials (limited access)")
+        return Credential(sessdata="", bili_jct="", buvid3="")
 
-    with open("credential.json", 'r') as f:
-        cookies = json.load(f)
-    if "sessdata" not in cookies:
-        raise ValueError("Credential File Invalid: Missing 'sessdata' Cookie")
-    if "bili_jct" not in cookies:
-        raise ValueError("Credential File Invalid: Missing 'bili_jct' Cookie")
-
-    cookies: Cookies = {"sessdata": cookies["sessdata"], "bili_jct": cookies["bili_jct"]}
-    return login_from_cookies(**cookies)
-
+def check() -> str:
+    #Check authentication status
+    try:
+        credential = login_from_stored()
+        if credential.sessdata and credential.bili_jct:
+            return "Authenticated"
+        else:
+            return "Not Authenticated"
+    except Exception:
+        return "Not Authenticated"
 
 def logout() -> None:
-    if os.path.exists("credential.json"):
-        os.remove("credential.json")
-    print("BiliAnalyzer Logged Out Successfully")
+    #Clear authentication information
+    try:
+        Path("credential.json").unlink()
+        print("Credentials deleted")
+    except FileNotFoundError:
+        print("No credentials found")
