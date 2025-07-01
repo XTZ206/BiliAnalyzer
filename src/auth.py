@@ -1,11 +1,9 @@
 import json
 import os
-from os import PathLike
-from typing import Optional
 
 from bilibili_api import Credential, sync
 
-Cookies = dict[str, str]
+from utils import *
 
 
 def check() -> str:
@@ -32,7 +30,7 @@ def login_from_cookies(sessdata: str, bili_jct: str) -> Credential:
     return credential
 
 
-def login_from_file(filepath: PathLike) -> Credential:
+def login_from_file(filepath: FilePath) -> Credential:
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Credential File {filepath} Not Found")
 

@@ -1,11 +1,9 @@
 import argparse
 import json
-from typing import Optional
-
-from bilibili_api import sync, Credential
 
 import auth
 from fetch import *
+from utils import *
 
 
 def main() -> None:
