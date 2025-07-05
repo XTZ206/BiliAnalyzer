@@ -7,7 +7,7 @@ from utils import *
 
 
 def check() -> str:
-    # TODO: implement a better to indicate authentication status
+    # TODO: implement a better way to indicate authentication status
     # Check if the credential file exists
     if not os.path.exists("credential.json"):
         return "Authentication File Not Found. Please Login First."
