@@ -65,7 +65,7 @@ def main() -> None:
                     print(f"Authentication Failed: {error}")
                     return
             replies = fetch_replies(args.bvid, limit=args.limit, credential=credential)
-            store_replies(replies, filepath=args.output)
+            save_replies(replies, filepath=args.output)
 
         case "analyze":
             replies = load_replies(filepath=args.input)
