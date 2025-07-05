@@ -47,21 +47,25 @@ def main() -> None:
                     bili_jct: str = input("Please enter your bili_jct cookie for bilibili: ")
                     try:
                         credential = auth.login_from_cookies(sessdata=sessdata, bili_jct=bili_jct)
-                        with open("credential.json", "w") as f:
-                            json.dump({"sessdata": sessdata, "bili_jct": bili_jct}, f, ensure_ascii=False, indent=4)
-                        print("BiliAnalyzer Logged In Successfully")
                     except ValueError as error:
                         print(f"Login Failed: {error}")
                         return
+                    print("BiliAnalyzer Logged In Successfully")
 
                 case "logout":
                     auth.logout()
                     print("BiliAnalyzer Logged Out Successfully")
 
         case "fetch":
-            credential = auth.login_from_stored(fake=args.no_auth)
+            credential: Credential = Credential()
+            if not args.no_auth:
+                try:
+                    credential = auth.load_credential()
+                except ValueError as error:
+                    print(f"Authentication Failed: {error}")
+                    return
             replies = fetch_replies(args.bvid, limit=args.limit, credential=credential)
-            store_replies(replies, filepath=args.output)
+            save_replies(replies, filepath=args.output)
 
         case "analyze":
             replies = load_replies(filepath=args.input)

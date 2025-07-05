@@ -1,10 +1,10 @@
 from os import PathLike
-from typing import Union, Any, Optional, Collection
+from typing import Union, Any, TypeAlias, Optional, Collection
 
 FilePath = Union[str, PathLike]
 
-Member = dict[str, Any]
-Reply = dict[str, Any]
-Page = dict[str, Any]
+Member: TypeAlias = dict[str, Any]
+Reply: TypeAlias = dict[str, Any]
+Page: TypeAlias = dict[str, Any]
 
-Cookies = dict[str, str]
+Cookies: TypeAlias = dict[str, str]

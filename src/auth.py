@@ -7,12 +7,13 @@ from utils import *
 
 
 def check() -> str:
+    # TODO: implement a better way to indicate authentication status
     # Check if the credential file exists
     if not os.path.exists("credential.json"):
         return "Authentication File Not Found. Please Login First."
 
     try:
-        credential = login_from_stored()
+        credential = load_credential()
     except ValueError as e:
         return str(e)
 
@@ -26,6 +27,8 @@ def login_from_cookies(sessdata: str, bili_jct: str) -> Credential:
     credential = Credential(sessdata=sessdata, bili_jct=bili_jct)
     if not sync(credential.check_valid()):
         raise ValueError("Invalid Credential: Please Check Your Cookies")
+
+    save_credential(credential)
 
     return credential
 
@@ -45,9 +48,7 @@ def login_from_file(filepath: FilePath) -> Credential:
     return login_from_cookies(**cookies)
 
 
-def login_from_stored(fake: bool = False) -> Credential:
-    if fake:
-        return Credential()
+def load_credential() -> Credential:
     if not os.path.exists("credential.json"):
         return Credential()
 
@@ -62,7 +63,15 @@ def login_from_stored(fake: bool = False) -> Credential:
     return login_from_cookies(**cookies)
 
 
+def save_credential(credential: Credential) -> None:
+    cookies = {
+        "sessdata": credential.sessdata,
+        "bili_jct": credential.bili_jct
+    }
+    with open("credential.json", 'w') as f:
+        json.dump(cookies, f)
+
+
 def logout() -> None:
     if os.path.exists("credential.json"):
         os.remove("credential.json")
-    print("BiliAnalyzer Logged Out Successfully")
