@@ -59,12 +59,12 @@ def load_members(filepath: FilePath) -> list[Member]:
 
 
 def save_replies(replies: Collection[Reply], filepath: FilePath) -> None:
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
     with open(filepath, 'w', encoding="utf-8") as f:
         json.dump(list(replies), f, ensure_ascii=False, indent=4)
 
 
 def save_members(members: Collection[Member], filepath: FilePath) -> None:
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
     with open(filepath, 'w', encoding="utf-8") as f:
         json.dump(list(members), f, ensure_ascii=False, indent=4)
