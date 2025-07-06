@@ -32,6 +32,8 @@ def main() -> None:
     # Analyze Commands
     analyze_parser = subparsers.add_parser("analyze", help="Analyze comments from a file")
     analyze_parser.add_argument("input", type=str, help="Input file with comments")
+    analyze_parser.add_argument("-o", "--output", type=str, default="analysis_results.json",
+                                help="Output filepath for analysis results (default: analysis_results.json)")
     # TODO: store analysis results in a file
 
     args = parser.parse_args()
@@ -93,6 +95,16 @@ def main() -> None:
             print(f"共计{len(locations)}种属地分布")
             for location, count in locations.most_common(5):
                 print(f"{location}: {count} 次")
+            
+            analysis_results = {
+                "评论数量": len(replies),
+                "用户数量": len(members),
+                "用户性别分布": dict(sexes),
+                "用户装扮分布": dict(pendants),
+                "评论IP属地分布": dict(locations)
+            }
+            save_results(analysis_results, args.output) 
+            print(f"分析结果已保存到 {args.output}")
 
 
 if __name__ == "__main__":

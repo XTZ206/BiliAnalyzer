@@ -17,4 +17,5 @@ __pycache__/
 
 # Credentials
 /credential.json
-
+/comments.json
+/analysis_results.json
