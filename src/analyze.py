@@ -40,6 +40,37 @@ def analyze_pendants(members: Collection[Member]) -> Counter[str]:
     return pendants
 
 
+def analyze_cardbgs(members: Collection[Member]) -> Counter[str]:
+    # NOTE: cardbg 表示数字周边，出现在评论右侧
+    cardbgs: Counter[str] = Counter()
+    for member in members:
+        if member.get("user_sailing") is None:
+            continue
+
+        if member.get("cardbg") is None:
+            continue
+
+        cardbg: str = member["user_sailing"]["cardbg"].get("name", "").strip()
+        if cardbg:
+            cardbgs[cardbg] += 1
+    return cardbgs
+
+
+def analyze_fans(members: Collection[Member]) -> tuple[str, Counter[int]]:
+    fans_name: str = "未知粉丝团"
+    fans_levels: Counter[int] = Counter()
+    for member in members:
+        if member.get("fans_detail") is None:
+            continue
+
+        if fans_name == "未知粉丝团":
+            fans_name = member["fans_detail"].get("medal_name", "未知粉丝团").strip()
+
+        fans_level: int = member["fans_detail"].get("level", 0)
+        fans_levels[fans_level] += 1
+    return fans_name, fans_levels
+
+
 def analyze_locations(replies: Collection[Reply]) -> Counter[str]:
     prefix: str = "IP属地："
     locations: Counter[str] = Counter()
