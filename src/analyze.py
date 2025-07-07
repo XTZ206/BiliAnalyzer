@@ -46,8 +46,7 @@ def analyze_cardbgs(members: Collection[Member]) -> Counter[str]:
     for member in members:
         if member.get("user_sailing") is None:
             continue
-
-        if member.get("cardbg") is None:
+        if member["user_sailing"].get("cardbg") is None:
             continue
 
         cardbg: str = member["user_sailing"]["cardbg"].get("name", "").strip()
