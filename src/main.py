@@ -71,28 +71,76 @@ def main() -> None:
             replies = load_replies(filepath=args.input)
             members = fetch_members(replies)
 
+            uid_lengths: Counter[int] = analyze_uid_lengths(members)
+            levels: Counter[int] = analyze_levels(members)
+            vips: Counter[str] = analyze_vips(members)
             sexes: Counter[str] = analyze_sexes(members)
             pendants: Counter[str] = analyze_pendants(members)
+            cardbgs: Counter[str] = analyze_cardbgs(members)
+            fan_name, fan_levels = analyze_fans(members)
             locations: Counter[str] = analyze_locations(replies)
 
             print(f"共分析 {len(replies)} 条评论， {len(members)} 位用户")
-            print("用户性别分布：")
-            print(f"男: {sexes['男']}\n女: {sexes['女']}\n保密: {sexes['保密']}")
+
+            print("用户UID位数分布: ")
+            for uid_length, count in uid_lengths.most_common():
+                print(f"{uid_length} 位: {count} 次")
             print()
 
-            print("用户装扮分布：")
-            print(f"共计{len(pendants)}种装扮")
+            print("用户等级分布:")
+            for level, count in levels.most_common():
+                if level == 7:
+                    print(f"硬核: {count:<3}个")
+                else:
+                    print(f"{level} 级: {count:<3}个")
+            print()
+
+            print("用户大会员分布:")
+            for vip, count in vips.most_common():
+                print(f"{vip}: {count} 个")
+            print()
+
+            print("用户性别分布:")
+            print(f"男: {sexes["男"]}个")
+            print(f"女: {sexes["女"]}个")
+            print(f"保密: {sexes["保密"]}个")
+            print()
+
+            print("用户头像框分布:")
+            print(f"共计{len(pendants)}种头像框")
             if len(pendants) == 0:
-                print("没有用户展示了装扮")
+                print("没有用户展示了头像框")
             else:
                 for pendant, count in pendants.most_common(5):
                     print(f"{pendant}: {count} 次")
+                if len(pendants) > 5:
+                    print("...")
             print()
 
-            print("评论IP属地分布：")
+            print("用户数字周边分布:")
+            print(f"共计{len(cardbgs)}种数字周边")
+            if len(cardbgs) == 0:
+                print("没有用户展示了数字周边")
+            else:
+                for cardbg, count in cardbgs.most_common(5):
+                    print(f"{cardbg}: {count} 次")
+                if len(cardbgs) > 5:
+                    print("...")
+            print()
+
+            print(f"粉丝团 {fan_name} 等级分布:")
+            print(f"共计 {sum(fan_levels.values())} 个粉丝团成员")
+            for level, count in fan_levels.most_common():
+                print(f"{level} 级: {count} 个")
+            print()
+
+            print("评论IP属地分布:")
             print(f"共计{len(locations)}种属地分布")
             for location, count in locations.most_common(5):
                 print(f"{location}: {count} 次")
+            if len(locations) > 5:
+                print("...")
+            print()
 
 
 if __name__ == "__main__":
