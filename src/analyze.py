@@ -2,7 +2,7 @@ from collections import Counter
 from utils import *
 
 
-def analyze_uids(members: Collection[Member]) -> Counter[int]:
+def analyze_uid_lengths(members: Collection[Member]) -> Counter[int]:
     return Counter(len(member["mid"]) for member in members)
 
 
@@ -28,13 +28,12 @@ def analyze_sexes(members: Collection[Member]) -> Counter[str]:
 
 
 def analyze_pendants(members: Collection[Member]) -> Counter[str]:
+    # NOTE: pendant 表示头像框，叠加在头像上
     pendants: Counter[str] = Counter()
     for member in members:
-        if "pendant" not in member:
+        if member.get("pendant") is None:
             continue
-        if "name" not in member["pendant"]:
-            continue
-        pendant: str = member.get("pendant", {}).get("name", "").strip()
+        pendant: str = member["pendant"].get("name", "").strip()
         if pendant:
             pendants[pendant] += 1
     return pendants
