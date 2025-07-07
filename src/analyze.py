@@ -7,7 +7,7 @@ def analyze_uids(members: Collection[Member]) -> Counter[int]:
 
 
 def analyze_levels(members: Collection[Member]) -> Counter[int]:
-    return Counter(member["level_info"]["current_level"] + member["is_senior_info"]
+    return Counter(member["level_info"]["current_level"] + member["is_senior_member"]
                    for member in members)
 
 
