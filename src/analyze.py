@@ -28,7 +28,7 @@ def analyze_sexes(members: Collection[Member]) -> Counter[str]:
 
 
 def analyze_pendants(members: Collection[Member]) -> Counter[str]:
-    counter: Counter[str] = Counter()
+    pendants: Counter[str] = Counter()
     for member in members:
         if "pendant" not in member:
             continue
@@ -36,13 +36,13 @@ def analyze_pendants(members: Collection[Member]) -> Counter[str]:
             continue
         pendant: str = member.get("pendant", {}).get("name", "").strip()
         if pendant:
-            counter[pendant] += 1
-    return counter
+            pendants[pendant] += 1
+    return pendants
 
 
 def analyze_locations(replies: Collection[Reply]) -> Counter[str]:
     prefix: str = "IP属地："
-    counter: Counter[str] = Counter()
+    locations: Counter[str] = Counter()
     for reply in replies:
         if "reply_control" not in reply:
             continue
@@ -50,5 +50,5 @@ def analyze_locations(replies: Collection[Reply]) -> Counter[str]:
             continue
         location: str = reply["reply_control"]["location"]
         if location.startswith(prefix):
-            counter[location[len(prefix):]] += 1
-    return counter
+            locations[location[len(prefix):]] += 1
+    return locations
