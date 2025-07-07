@@ -2,6 +2,27 @@ from collections import Counter
 from utils import *
 
 
+def analyze_uids(members: Collection[Member]) -> Counter[int]:
+    return Counter(len(member["mid"]) for member in members)
+
+
+def analyze_levels(members: Collection[Member]) -> Counter[int]:
+    return Counter(member["level_info"]["current_level"] + member["is_senior_info"]
+                   for member in members)
+
+
+def analyze_vips(members: Collection[Member]):
+    # TODO: analyze the vip remaining days
+    vips: Counter[str] = Counter()
+
+    for member in members:
+        if member["vip"]["vipStatus"] == 0:
+            continue
+        vips[member["vip"]["label"]["text"]] += 1
+
+    return vips
+
+
 def analyze_sexes(members: Collection[Member]) -> Counter[str]:
     return Counter(member.get("sex", "保密") for member in members)
 
