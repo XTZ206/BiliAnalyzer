@@ -103,9 +103,9 @@ def main() -> None:
             print()
 
             print("用户性别分布:")
-            print(f"男: {sexes["男"]}个")
-            print(f"女: {sexes["女"]}个")
-            print(f"保密: {sexes["保密"]}个")
+            print(f'男: {sexes["男"]}个')
+            print(f'女: {sexes["女"]}个')
+            print(f'保密: {sexes["保密"]}个')
             print()
 
             print("用户头像框分布:")
@@ -147,8 +147,17 @@ def main() -> None:
             analysis_results = {
                 "评论数量": len(replies),
                 "用户数量": len(members),
+                "用户UID位数分布": {f"{k}位": v for k, v in uid_lengths.items()},
+                "用户等级分布": {f"{k}级" if k != 7 else "硬核": v for k, v in levels.items()},
+                "用户大会员分布": dict(vips),
                 "用户性别分布": dict(sexes),
-                "用户装扮分布": dict(pendants),
+                "用户头像框分布": dict(pendants),
+                "用户数字周边分布": dict(cardbgs),
+                "粉丝团信息": {
+                    "粉丝团名称": fan_name,
+                    "粉丝团等级分布": dict(fan_levels),
+                    "粉丝团成员总数": sum(fan_levels.values())
+                },
                 "评论IP属地分布": dict(locations)
             }
             save_results(analysis_results, args.output) 
