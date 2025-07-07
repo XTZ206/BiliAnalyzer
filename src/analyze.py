@@ -17,8 +17,9 @@ def analyze_vips(members: Collection[Member]):
 
     for member in members:
         if member["vip"]["vipStatus"] == 0:
-            continue
-        vips[member["vip"]["label"]["text"]] += 1
+            vips["非大会员"] += 1
+        else:
+            vips[member["vip"]["label"]["text"]] += 1
 
     return vips
 
