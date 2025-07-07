@@ -34,13 +34,22 @@ def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credential] =
 
 def fetch_members(replies: Collection[Reply]) -> list[Member]:
     members: list[Member] = []
-    mids: set[int] = set()
+    uids: dict[int, Member] = {}
     for reply in replies:
         member = reply.get("member", {})
-        mid = member.get("mid")
-        if mid is not None and mid not in mids:
-            mids.add(mid)
+        uid: int = member.get("mid")
+        if uid is None:
+            continue
+        if uid not in uids:
+            uids[uid] = member
             members.append(member)
+        else:
+            # Update existing member with new information
+            existing_member = uids[uid]
+            for key, value in member.items():
+                if key not in existing_member or not existing_member[key]:
+                    existing_member[key] = value
+            uids[uid] = existing_member
     return members
 
 
