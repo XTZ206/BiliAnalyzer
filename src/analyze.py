@@ -48,8 +48,7 @@ def analyze_cardbgs(members: Collection[Member]) -> Counter[str]:
     for member in members:
         if member.get("user_sailing") is None:
             continue
-
-        if member.get("user_sailing").get("cardbg") is None:
+        if member["user_sailing"].get("cardbg") is None:
             continue
 
         cardbg: str = member["user_sailing"]["cardbg"].get("name", "").strip()
@@ -85,6 +84,7 @@ def analyze_locations(replies: Collection[Reply]) -> Counter[str]:
         if location.startswith(prefix):
             locations[location[len(prefix):]] += 1
     return locations
+
 
 def save_results(results: Collection[Result], filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
