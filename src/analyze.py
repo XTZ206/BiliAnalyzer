@@ -86,7 +86,7 @@ def analyze_locations(replies: Collection[Reply]) -> Counter[str]:
     return locations
 
 
-def save_results(results: Collection[Result], filepath: FilePath) -> None:
+def save_results(results: Analysis, filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
     with open(filepath, 'w', encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=4)

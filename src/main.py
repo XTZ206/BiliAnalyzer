@@ -34,7 +34,6 @@ def main() -> None:
     analyze_parser.add_argument("input", type=str, help="Input file with comments")
     analyze_parser.add_argument("-o", "--output", type=str, default="analysis_results.json",
                                 help="Output filepath for analysis results (default: analysis_results.json)")
-    # TODO: store analysis results in a file
 
     args = parser.parse_args()
 
@@ -103,9 +102,9 @@ def main() -> None:
             print()
 
             print("用户性别分布:")
-            print(f'男: {sexes["男"]}个')
-            print(f'女: {sexes["女"]}个')
-            print(f'保密: {sexes["保密"]}个')
+            print(f"男: {sexes['男']}个")
+            print(f"女: {sexes['女']}个")
+            print(f"保密: {sexes['保密']}个")
             print()
 
             print("用户头像框分布:")
@@ -144,7 +143,7 @@ def main() -> None:
                 print("...")
             print()
 
-            analysis_results = {
+            analysis: Analysis = {
                 "评论数量": len(replies),
                 "用户数量": len(members),
                 "用户UID位数分布": {f"{k}位": v for k, v in uid_lengths.items()},
@@ -160,8 +159,9 @@ def main() -> None:
                 },
                 "评论IP属地分布": dict(locations)
             }
-            save_results(analysis_results, args.output) 
+            save_results(analysis, args.output)
             print(f"分析结果已保存到 {args.output}")
+
 
 if __name__ == "__main__":
     main()
