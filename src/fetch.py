@@ -13,6 +13,7 @@ def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credential] =
     index: int = 1
     replies: list[Reply] = []
 
+    reply: Reply
     for reply in page.get("replies", []):
         replies.append(reply)
         for reply in reply.get("replies", []):
@@ -24,6 +25,8 @@ def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credential] =
         index += 1
         page: Page = sync(get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, index, credential=credential))
         time.sleep(1)
+
+        reply: Reply
         for reply in page.get("replies", []):
             replies.append(reply)
             for reply in reply.get("replies", []):

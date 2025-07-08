@@ -13,8 +13,11 @@ __pycache__/
 # Temporary Files
 /temp
 *.tmp
+
+# Debugging Files
 /BV*.json
+/comments.json
+/analysis_results.json
 
 # Credentials
 /credential.json
-

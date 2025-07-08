@@ -6,5 +6,6 @@ FilePath = Union[str, PathLike]
 Member: TypeAlias = dict[str, Any]
 Reply: TypeAlias = dict[str, Any]
 Page: TypeAlias = dict[str, Any]
+Analysis: TypeAlias = dict[str, Any]
 
 Cookies: TypeAlias = dict[str, str]

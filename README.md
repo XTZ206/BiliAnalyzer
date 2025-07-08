@@ -40,5 +40,5 @@ python src/main.py fetch <bvid> [-o <path/to/comments.json>]
 ### Analyze Comments
 
 ``` shell
-python src/main.py analyze <path/to/comments.json>
+python src/main.py analyze <path/to/comments.json> [-o <path/to/analysis_results.json>]
 ```
