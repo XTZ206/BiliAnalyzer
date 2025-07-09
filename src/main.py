@@ -7,7 +7,7 @@ from analyze import *
 from utils import *
 
 
-def main() -> None:
+async def main() -> None:
     parser = argparse.ArgumentParser(prog="bilianalyzer", usage="%(prog)s [command]",
                                      description="Fetch and Analyze Bilibili Comments")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -65,7 +65,7 @@ def main() -> None:
                 except ValueError as error:
                     print(f"Authentication Failed: {error}")
                     return
-            replies = fetch_replies(args.bvid, limit=args.limit, credential=credential)
+            replies = await fetch_replies(args.bvid, limit=args.limit, credential=credential)
             save_replies(replies, filepath=args.output)
 
         case "analyze":
@@ -164,4 +164,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

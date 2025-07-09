@@ -1,38 +1,43 @@
 import json
-import time
 import os
-from bilibili_api import Credential, bvid2aid, sync
+from bilibili_api import Credential, bvid2aid
 from bilibili_api.comment import CommentResourceType, get_comments
-
+import asyncio
+import random
 from utils import *
 
-
-def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credential] = None) -> list[Reply]:
-    page: Page = sync(get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=credential))
-    count: int = page.get("page", {}).get("count", 0)
-    index: int = 1
-    replies: list[Reply] = []
-
+async def fetch_page(bvid: str, index: int, credential: Optional[Credential] = None) -> list[Reply]:
+    page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, index,credential=credential)
+    page_reply: list[Reply] = []
+    
     reply: Reply
     for reply in page.get("replies", []):
-        replies.append(reply)
+        page_reply.append(reply)
         for reply in reply.get("replies", []):
-            replies.append(reply)
+            page_reply.append(reply)
+    return page_reply
 
-    while limit == 0 or index < limit:
-        if len(replies) >= count or page.get("replies") == []:
-            break
-        index += 1
-        page: Page = sync(get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, index, credential=credential))
-        time.sleep(1)
+async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credential] = None) -> list[Reply]:
+    page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=credential)
+    count: int = page.get("page", {}).get("count", 0)
+    all_replies: list[Reply] = []
+    total_pages:int = (count // 20) + 1
+    pages_to_fetch: range = range(1, total_pages + 1) if limit == 0 else range(1, min(total_pages, limit) + 1)
+    
+    semaphore = asyncio.Semaphore(5)
+    
+    async def bounded_fetch(page_num):
+        async with semaphore:
+            await asyncio.sleep(0.5 + random.random())
+            return await fetch_page(bvid, page_num, credential)
+        
+    tasks:list = [bounded_fetch(index) for index in pages_to_fetch]  
+    results:list = await asyncio.gather(*tasks)       
+    
+    all_replies = [reply for page_replies in results for reply in page_replies]
+    return all_replies
 
-        reply: Reply
-        for reply in page.get("replies", []):
-            replies.append(reply)
-            for reply in reply.get("replies", []):
-                replies.append(reply)
-
-    return replies
+    
 
 
 def fetch_members(replies: Collection[Reply]) -> list[Member]:
