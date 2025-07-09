@@ -44,7 +44,8 @@ def login_from_file(filepath: FilePath) -> Credential:
     if "bili_jct" not in cookies:
         raise ValueError("Credential File Invalid: Missing 'bili_jct' Cookie")
 
-    cookies: Cookies = {"sessdata": cookies["sessdata"], "bili_jct": cookies["bili_jct"]}
+    cookies: Cookies = {
+        "sessdata": cookies["sessdata"], "bili_jct": cookies["bili_jct"]}
     return login_from_cookies(**cookies)
 
 
@@ -59,7 +60,8 @@ def load_credential() -> Credential:
     if "bili_jct" not in cookies:
         raise ValueError("Credential File Invalid: Missing 'bili_jct' Cookie")
 
-    cookies: Cookies = {"sessdata": cookies["sessdata"], "bili_jct": cookies["bili_jct"]}
+    cookies: Cookies = {
+        "sessdata": cookies["sessdata"], "bili_jct": cookies["bili_jct"]}
     return login_from_cookies(**cookies)
 
 
