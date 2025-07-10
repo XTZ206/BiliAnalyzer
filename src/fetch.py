@@ -1,38 +1,56 @@
+import asyncio
+import math
 import json
-import time
 import os
-from bilibili_api import Credential, bvid2aid, sync
+import random
+from typing import Coroutine
+from bilibili_api import Credential, bvid2aid
 from bilibili_api.comment import CommentResourceType, get_comments
-
 from utils import *
 
+COMMENTS_PER_PAGE = 20
 
-def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credential] = None) -> list[Reply]:
-    page: Page = sync(get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=credential))
-    count: int = page.get("page", {}).get("count", 0)
-    index: int = 1
-    replies: list[Reply] = []
+
+async def fetch_page_replies(bvid: str, index: int, credential: Optional[Credential] = None) -> list[Reply]:
+    page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, index, credential=credential)
+    return flatten_replies(page)
+
+
+def flatten_replies(page: Page) -> list[Reply]:
+    page_replies: list[Reply] = []
 
     reply: Reply
     for reply in page.get("replies", []):
-        replies.append(reply)
+        page_replies.append(reply)
         for reply in reply.get("replies", []):
-            replies.append(reply)
+            page_replies.append(reply)
+    return page_replies
 
-    while limit == 0 or index < limit:
-        if len(replies) >= count or page.get("replies") == []:
-            break
-        index += 1
-        page: Page = sync(get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, index, credential=credential))
-        time.sleep(1)
 
-        reply: Reply
-        for reply in page.get("replies", []):
-            replies.append(reply)
-            for reply in reply.get("replies", []):
-                replies.append(reply)
+async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credential] = None) -> list[Reply]:
+    page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=credential)
+    reply_count: int = page.get("page", {}).get("count", 0)
+    all_replies: list[Reply] = []
+    page_count: int = math.ceil(reply_count / COMMENTS_PER_PAGE)
+    page_index_range: Collection[int] = range(
+        2, page_count + 1) if limit == 0 else range(2, min(page_count, limit) + 1)
 
-    return replies
+    all_replies.extend(flatten_replies(page))
+
+    semaphore = asyncio.Semaphore(5)
+
+    async def bounded_fetch(page_index: int) -> list[Reply]:
+        async with semaphore:
+            await asyncio.sleep(0.5 + random.random())
+            return await fetch_page_replies(bvid, page_index, credential)
+
+    tasks: list[Coroutine] = [bounded_fetch(index) for index in page_index_range]
+
+    pages_replies: list[list[Reply]] = await asyncio.gather(*tasks)
+
+    for page_replies in pages_replies:
+        all_replies.extend(page_replies)
+    return all_replies
 
 
 def fetch_members(replies: Collection[Reply]) -> list[Member]:
