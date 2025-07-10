@@ -17,6 +17,7 @@ async def fetch_page_replies(bvid: str, index: int, credential: Optional[Credent
 
 def flatten_reolies(page: Page) -> list[Reply]:
     page_replies: list[Reply] = []
+
     reply: Reply
     for reply in page.get("replies", []):
         page_replies.append(reply)
@@ -42,8 +43,7 @@ async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credent
             await asyncio.sleep(0.5 + random.random())
             return await fetch_page_replies(bvid, page_index, credential)
 
-    tasks: list[Coroutine] = [bounded_fetch(
-        index) for index in page_index_range]
+    tasks: list[Coroutine] = [bounded_fetch(index) for index in page_index_range]
 
     results: list[list[Reply]] = await asyncio.gather(*tasks)
 

@@ -13,16 +13,11 @@ async def main() -> None:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Authentication commands
-    auth_parser = subparsers.add_parser(
-        "auth", help="Authenticate BiliAnalyzer with Bilibili Cookies")
-    auth_subparsers = auth_parser.add_subparsers(
-        dest="auth_command", required=True)
-    auth_subparsers.add_parser(
-        "status", help="Check Authentication Status of BiliAnalyzer")
-    auth_subparsers.add_parser(
-        "login", help="Login and Store Cookies for BiliAnalyzer")
-    auth_subparsers.add_parser(
-        "logout", help="Logout BiliAnalyzer and Remove Stored Cookies")
+    auth_parser = subparsers.add_parser("auth", help="Authenticate BiliAnalyzer with Bilibili Cookies")
+    auth_subparsers = auth_parser.add_subparsers(dest="auth_command", required=True)
+    auth_subparsers.add_parser("status", help="Check Authentication Status of BiliAnalyzer")
+    auth_subparsers.add_parser("login", help="Login and Store Cookies for BiliAnalyzer")
+    auth_subparsers.add_parser("logout", help="Logout BiliAnalyzer and Remove Stored Cookies")
 
     # Fetch Commands
     fetch_parser = subparsers.add_parser(
@@ -36,10 +31,8 @@ async def main() -> None:
                               help="Skip authentication and fetch comments without credentials")
 
     # Analyze Commands
-    analyze_parser = subparsers.add_parser(
-        "analyze", help="Analyze comments from a file")
-    analyze_parser.add_argument(
-        "input", type=str, help="Input file with comments")
+    analyze_parser = subparsers.add_parser("analyze", help="Analyze comments from a file")
+    analyze_parser.add_argument("input", type=str, help="Input file with comments")
     analyze_parser.add_argument("-o", "--output", type=str, default="analysis_results.json",
                                 help="Output filepath for analysis results (default: analysis_results.json)")
 
@@ -52,13 +45,10 @@ async def main() -> None:
                     print(auth.check())
 
                 case "login":
-                    sessdata: str = input(
-                        "Please enter your sessdata cookie for bilibili: ")
-                    bili_jct: str = input(
-                        "Please enter your bili_jct cookie for bilibili: ")
+                    sessdata: str = input("Please enter your sessdata cookie for bilibili: ")
+                    bili_jct: str = input("Please enter your bili_jct cookie for bilibili: ")
                     try:
-                        credential = auth.login_from_cookies(
-                            sessdata=sessdata, bili_jct=bili_jct)
+                        credential = auth.login_from_cookies(sessdata=sessdata, bili_jct=bili_jct)
                     except ValueError as error:
                         print(f"Login Failed: {error}")
                         return

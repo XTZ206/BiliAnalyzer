@@ -65,8 +65,7 @@ def analyze_fans(members: Collection[Member]) -> tuple[str, Counter[int]]:
             continue
 
         if fans_name == "未知粉丝团":
-            fans_name = member["fans_detail"].get(
-                "medal_name", "未知粉丝团").strip()
+            fans_name = member["fans_detail"].get("medal_name", "未知粉丝团").strip()
 
         fans_level: int = member["fans_detail"].get("level", 0)
         fans_levels[fans_level] += 1
