@@ -1,4 +1,5 @@
 import asyncio
+import math
 import json
 import os
 import random
@@ -30,7 +31,7 @@ async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credent
     page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=credential)
     reply_count: int = page.get("page", {}).get("count", 0)
     all_replies: list[Reply] = []
-    page_count: int = (reply_count // COMMENTS_PER_PAGE) + 1
+    page_count: int = math.ceil(reply_count / COMMENTS_PER_PAGE)
     page_index_range: Collection[int] = range(
         2, page_count + 1) if limit == 0 else range(2, min(page_count, limit) + 1)
 
@@ -45,9 +46,10 @@ async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credent
 
     tasks: list[Coroutine] = [bounded_fetch(index) for index in page_index_range]
 
-    results: list[list[Reply]] = await asyncio.gather(*tasks)
+    pages_replies: list[list[Reply]] = await asyncio.gather(*tasks)
 
-    all_replies = [reply for page_replies in results for reply in page_replies]
+    for page_replies in pages_replies:
+        all_replies.extend(page_replies)
     return all_replies
 
 
