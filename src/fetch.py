@@ -34,7 +34,7 @@ async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credent
     page_index_range: Collection[int] = range(
         2, page_count + 1) if limit == 0 else range(2, min(page_count, limit) + 1)
 
-    all_replies.append(flatten_replies(page))
+    all_replies.extend(flatten_replies(page))
 
     semaphore = asyncio.Semaphore(5)
 
