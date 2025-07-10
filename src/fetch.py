@@ -1,21 +1,21 @@
+import asyncio
 import json
 import os
+import random
 from typing import Coroutine
 from bilibili_api import Credential, bvid2aid
 from bilibili_api.comment import CommentResourceType, get_comments
-import asyncio
-import random
 from utils import *
 
-COMMRNTS_PER_PAGE = 20
+COMMENTS_PER_PAGE = 20
 
 
 async def fetch_page_replies(bvid: str, index: int, credential: Optional[Credential] = None) -> list[Reply]:
     page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, index, credential=credential)
-    return flatten_reolies(page)
+    return flatten_replies(page)
 
 
-def flatten_reolies(page: Page) -> list[Reply]:
+def flatten_replies(page: Page) -> list[Reply]:
     page_replies: list[Reply] = []
 
     reply: Reply
@@ -30,15 +30,15 @@ async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credent
     page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=credential)
     reply_count: int = page.get("page", {}).get("count", 0)
     all_replies: list[Reply] = []
-    page_count: int = (reply_count // COMMRNTS_PER_PAGE) + 1
+    page_count: int = (reply_count // COMMENTS_PER_PAGE) + 1
     page_index_range: Collection[int] = range(
         2, page_count + 1) if limit == 0 else range(2, min(page_count, limit) + 1)
 
-    all_replies.append(flatten_reolies(page))
+    all_replies.append(flatten_replies(page))
 
     semaphore = asyncio.Semaphore(5)
 
-    async def bounded_fetch(page_index: int) -> Coroutine[Any, Any, list[Reply]]:
+    async def bounded_fetch(page_index: int) -> list[Reply]:
         async with semaphore:
             await asyncio.sleep(0.5 + random.random())
             return await fetch_page_replies(bvid, page_index, credential)
