@@ -20,8 +20,7 @@ async def main() -> None:
     auth_subparsers.add_parser("logout", help="Logout BiliAnalyzer and Remove Stored Cookies")
 
     # Fetch Commands
-    fetch_parser = subparsers.add_parser(
-        "fetch", help="Fetch comments for a video with given BVID")
+    fetch_parser = subparsers.add_parser("fetch", help="Fetch comments for a video with given BVID")
     fetch_parser.add_argument("bvid", type=str, help="BVID of the video")
     fetch_parser.add_argument("-n", "--limit", type=int, default=10,
                               help="Limit the maximum number of pages to fetch (default: 10)")
