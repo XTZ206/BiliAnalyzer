@@ -34,8 +34,8 @@ async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credent
     reply_count: int = page.get("page", {}).get("count", 0)
     all_replies: list[Reply] = []
     page_count: int = math.ceil(reply_count / COMMENTS_PER_PAGE)
-    page_index_range: Collection[int] = range(
-        2, page_count + 1) if limit == 0 else range(2, min(page_count, limit) + 1)
+    page_index_range: Collection[int] = range(2, page_count + 1) if limit == 0 else range(2, min(page_count, limit) + 1)
+    # TODO: early termination if empty page is fetched
 
     all_replies.extend(flatten_replies(page))
 
