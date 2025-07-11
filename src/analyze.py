@@ -106,7 +106,7 @@ def save_results(results: Analysis, filepath: FilePath) -> None:
         json.dump(results, f, ensure_ascii=False, indent=4)
 
 
-def analyze_comment_times(video_info: list[Videoinfo], replies: Collection[Reply]) -> Counter[str]:
+def analyze_comment_times(video_info: list[VideoInfo], replies: Collection[Reply]) -> Counter[str]:
     video_pubdate: int = video_info[0]["pubdate"]
     interval_dict: dict[str, int] = defaultdict(int)
     for reply in replies:
