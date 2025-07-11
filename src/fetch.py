@@ -94,6 +94,7 @@ def load_members(filepath: FilePath) -> list[Member]:
     with open(filepath, 'r', encoding="utf-8") as f:
         return json.load(f)
 
+
 def load_video_info(filepath: FilePath) -> list[Videoinfo]:
     if not os.path.exists(filepath):
         return []
@@ -111,6 +112,7 @@ def save_members(members: Collection[Member], filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
     with open(filepath, 'w', encoding="utf-8") as f:
         json.dump(list(members), f, ensure_ascii=False, indent=4)
+
 
 def save_video_info(video_info: Collection[Videoinfo], filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)

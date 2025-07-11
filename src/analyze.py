@@ -14,7 +14,7 @@ TIME_INTERVALS = {
     "12-24小时内（1天内）": (12, 24),
     "24-48小时内（2天内）": (24, 48),
     "48-72小时内（3天内）": (48, 72),
-    "3天以上": (72, float("inf"))  
+    "3天以上": (72, float("inf"))
 }
 
 
@@ -107,17 +107,17 @@ def save_results(results: Analysis, filepath: FilePath) -> None:
 
 
 def analyze_comment_times(video_info: list[Videoinfo], replies: Collection[Reply]) -> Counter[str]:
-    video_pubdate: int =video_info[0]["pubdate"]
-    interval_dict: dict[str,int]=defaultdict(int)
+    video_pubdate: int = video_info[0]["pubdate"]
+    interval_dict: dict[str, int] = defaultdict(int)
     for reply in replies:
         ctime = reply.get("ctime")
         if not ctime:
             continue
-        tiem_interval: int =ctime - video_pubdate
-        if tiem_interval<0:
+        time_interval: int = ctime - video_pubdate
+        if time_interval < 0:
             continue
         for interval_name, (start, end) in TIME_INTERVALS.items():
-            if start * 3600 <= tiem_interval < end * 3600:
+            if start * 3600 <= time_interval < end * 3600:
                 interval_dict[interval_name] += 1
                 break
     return Counter(interval_dict)

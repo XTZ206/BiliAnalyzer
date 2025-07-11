@@ -66,7 +66,7 @@ async def main() -> None:
                     print(f"Authentication Failed: {error}")
                     return
             replies = await fetch_replies(args.bvid, limit=args.limit, credential=credential)
-            video_info= await fetch_video_info(args.bvid, credential=credential)
+            video_info = await fetch_video_info(args.bvid, credential=credential)
             save_replies(replies, filepath=args.output)
             save_video_info(video_info, filepath="video_info.json")
 
@@ -147,7 +147,7 @@ async def main() -> None:
             print()
             print("评论发布时间分布:")
             for time, count in comment_time_distribution.most_common():
-                print(f"{time}: {count} 次")        
+                print(f"{time}: {count} 次")
             print()
 
             analysis: Analysis = {
