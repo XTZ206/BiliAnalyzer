@@ -18,6 +18,7 @@ __pycache__/
 /BV*.json
 /comments.json
 /analysis_results.json
+/video_info.json
 
 # Credentials
 /credential.json
