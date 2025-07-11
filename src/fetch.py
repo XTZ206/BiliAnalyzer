@@ -3,19 +3,20 @@ import os
 from typing import Coroutine
 from bilibili_api import Credential, bvid2aid
 from bilibili_api.comment import CommentResourceType, get_comments
+from bilibili_api.video import Video
 import asyncio
 import random
 from utils import *
 
-COMMRNTS_PER_PAGE = 20
+COMMENTS_PER_PAGE = 20
 
 
 async def fetch_page_replies(bvid: str, index: int, credential: Optional[Credential] = None) -> list[Reply]:
     page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, index, credential=credential)
-    return flatten_reolies(page)
+    return flatten_replies(page)
 
 
-def flatten_reolies(page: Page) -> list[Reply]:
+def flatten_replies(page: Page) -> list[Reply]:
     page_replies: list[Reply] = []
     reply: Reply
     for reply in page.get("replies", []):
@@ -29,11 +30,11 @@ async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credent
     page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=credential)
     reply_count: int = page.get("page", {}).get("count", 0)
     all_replies: list[Reply] = []
-    page_count: int = (reply_count // COMMRNTS_PER_PAGE) + 1
+    page_count: int = (reply_count // COMMENTS_PER_PAGE) + 1
     page_index_range: Collection[int] = range(
         2, page_count + 1) if limit == 0 else range(2, min(page_count, limit) + 1)
 
-    all_replies.append(flatten_reolies(page))
+    all_replies.append(flatten_replies(page))
 
     semaphore = asyncio.Semaphore(5)
 
@@ -72,6 +73,11 @@ def fetch_members(replies: Collection[Reply]) -> list[Member]:
     return members
 
 
+async def fetch_video_info(bvid: str, credential: Optional[Credential] = None) -> list[Videoinfo]:
+    video_info: Videoinfo = await Video(bvid, credential=credential).get_info()
+    return [video_info]
+
+
 def load_replies(filepath: FilePath) -> list[Reply]:
     if not os.path.exists(filepath):
         return []
@@ -80,6 +86,12 @@ def load_replies(filepath: FilePath) -> list[Reply]:
 
 
 def load_members(filepath: FilePath) -> list[Member]:
+    if not os.path.exists(filepath):
+        return []
+    with open(filepath, 'r', encoding="utf-8") as f:
+        return json.load(f)
+
+def load_video_info(filepath: FilePath) -> list[Videoinfo]:
     if not os.path.exists(filepath):
         return []
     with open(filepath, 'r', encoding="utf-8") as f:
@@ -96,3 +108,8 @@ def save_members(members: Collection[Member], filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
     with open(filepath, 'w', encoding="utf-8") as f:
         json.dump(list(members), f, ensure_ascii=False, indent=4)
+
+def save_video_info(video_info: Collection[Videoinfo], filepath: FilePath) -> None:
+    os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
+    with open(filepath, 'w', encoding="utf-8") as f:
+        json.dump(list(video_info), f, ensure_ascii=False, indent=4)

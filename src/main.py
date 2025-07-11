@@ -77,7 +77,9 @@ async def main() -> None:
                     print(f"Authentication Failed: {error}")
                     return
             replies = await fetch_replies(args.bvid, limit=args.limit, credential=credential)
+            video_info= await fetch_video_info(args.bvid, credential=credential)
             save_replies(replies, filepath=args.output)
+            save_video_info(video_info, filepath="video_info.json")
 
         case "analyze":
             replies = load_replies(filepath=args.input)
@@ -91,6 +93,7 @@ async def main() -> None:
             cardbgs: Counter[str] = analyze_cardbgs(members)
             fan_name, fan_levels = analyze_fans(members)
             locations: Counter[str] = analyze_locations(replies)
+            comment_time_distribution: Counter[str,int] = analyze_comment_times(load_video_info("video_info.json"),replies)
 
             print(f"共分析 {len(replies)} 条评论， {len(members)} 位用户")
 
@@ -153,6 +156,10 @@ async def main() -> None:
             if len(locations) > 5:
                 print("...")
             print()
+            print("评论发布时间分布:")
+            for time, count in comment_time_distribution.most_common():
+                print(f"{time}: {count} 次")        
+            print()
 
             analysis: Analysis = {
                 "评论数量": len(replies),
@@ -168,7 +175,8 @@ async def main() -> None:
                     "粉丝团等级分布": dict(fan_levels),
                     "粉丝团成员总数": sum(fan_levels.values())
                 },
-                "评论IP属地分布": dict(locations)
+                "评论IP属地分布": dict(locations),
+                "评论发布时间分布": dict(comment_time_distribution)
             }
             save_results(analysis, args.output)
             print(f"分析结果已保存到 {args.output}")
