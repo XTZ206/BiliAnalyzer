@@ -1,11 +1,13 @@
+import asyncio
+import math
 import json
 import os
+import random
 from typing import Coroutine
 from bilibili_api import Credential, bvid2aid
-from bilibili_api.comment import CommentResourceType, get_comments
 from bilibili_api.video import Video
-import asyncio
-import random
+from bilibili_api.comment import CommentResourceType, get_comments
+
 from utils import *
 
 COMMENTS_PER_PAGE = 20
@@ -18,6 +20,7 @@ async def fetch_page_replies(bvid: str, index: int, credential: Optional[Credent
 
 def flatten_replies(page: Page) -> list[Reply]:
     page_replies: list[Reply] = []
+
     reply: Reply
     for reply in page.get("replies", []):
         page_replies.append(reply)
@@ -30,25 +33,25 @@ async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credent
     page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=credential)
     reply_count: int = page.get("page", {}).get("count", 0)
     all_replies: list[Reply] = []
-    page_count: int = (reply_count // COMMENTS_PER_PAGE) + 1
+    page_count: int = math.ceil(reply_count / COMMENTS_PER_PAGE)
     page_index_range: Collection[int] = range(
         2, page_count + 1) if limit == 0 else range(2, min(page_count, limit) + 1)
 
-    all_replies.append(flatten_replies(page))
+    all_replies.extend(flatten_replies(page))
 
     semaphore = asyncio.Semaphore(5)
 
-    async def bounded_fetch(page_index: int) -> Coroutine[Any, Any, list[Reply]]:
+    async def bounded_fetch(page_index: int) -> list[Reply]:
         async with semaphore:
             await asyncio.sleep(0.5 + random.random())
             return await fetch_page_replies(bvid, page_index, credential)
 
-    tasks: list[Coroutine] = [bounded_fetch(
-        index) for index in page_index_range]
+    tasks: list[Coroutine] = [bounded_fetch(index) for index in page_index_range]
 
-    results: list[list[Reply]] = await asyncio.gather(*tasks)
+    pages_replies: list[list[Reply]] = await asyncio.gather(*tasks)
 
-    all_replies = [reply for page_replies in results for reply in page_replies]
+    for page_replies in pages_replies:
+        all_replies.extend(page_replies)
     return all_replies
 
 
