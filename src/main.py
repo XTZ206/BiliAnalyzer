@@ -82,7 +82,7 @@ async def main() -> None:
             cardbgs: Counter[str] = analyze_cardbgs(members)
             fan_name, fan_levels = analyze_fans(members)
             locations: Counter[str] = analyze_locations(replies)
-            comment_time_distribution: Counter[str,int] = analyze_comment_times(load_video_info("video_info.json"),replies)
+            comment_time_distribution: Counter[str] = analyze_comment_times(load_video_info("video_info.json"), replies)
 
             print(f"共分析 {len(replies)} 条评论， {len(members)} 位用户")
 
