@@ -69,6 +69,7 @@ async def main() -> None:
             video_info = await fetch_video_info(args.bvid, credential=credential)
             save_replies(replies, filepath=args.output)
             save_video_info(video_info, filepath="video_info.json")
+            # TODO: replace hardcoded video_info filepath
 
         case "analyze":
             replies = load_replies(filepath=args.input)
@@ -83,6 +84,7 @@ async def main() -> None:
             fan_name, fan_levels = analyze_fans(members)
             locations: Counter[str] = analyze_locations(replies)
             comment_time_distribution: Counter[str] = analyze_comment_times(load_video_info("video_info.json"), replies)
+            # TODO: replace hardcoded video_info filepath
 
             print(f"共分析 {len(replies)} 条评论， {len(members)} 位用户")
 
