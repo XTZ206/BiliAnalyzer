@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "bilibili-api-python>=17.3.0",
+    "httpx>=0.28.1",
 ]
 
 [tool.black]
