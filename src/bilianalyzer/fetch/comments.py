@@ -8,7 +8,7 @@ from bilibili_api import Credential, bvid2aid
 from bilibili_api.video import Video
 from bilibili_api.comment import CommentResourceType, get_comments
 
-from utils import *
+from ..utils import *
 
 COMMENTS_PER_PAGE = 20
 

@@ -1,7 +1,7 @@
 import json
 import os
 from collections import Counter, defaultdict
-from utils import *
+from ..utils import *
 from datetime import datetime
 
 TIME_INTERVALS = {

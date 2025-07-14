@@ -3,7 +3,7 @@ import os
 
 from bilibili_api import Credential, sync
 
-from utils import *
+from .utils import *
 
 
 def check() -> str:

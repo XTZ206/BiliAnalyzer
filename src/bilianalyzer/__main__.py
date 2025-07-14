@@ -1,10 +1,10 @@
 import argparse
 import json
 
-import auth
-from fetch import *
-from analyze import *
-from utils import *
+from . import auth
+from .fetch.comments import *
+from .analyze.comments import *
+from .utils import *
 
 
 async def main() -> None:
