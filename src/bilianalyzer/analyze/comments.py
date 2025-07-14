@@ -14,7 +14,7 @@ TIME_INTERVALS = {
     "12-24小时内（1天内）": (12, 24),
     "24-48小时内（2天内）": (24, 48),
     "48-72小时内（3天内）": (48, 72),
-    "3天以上": (72, float("inf"))
+    "3天以上": (72, float("inf")),
 }
 
 
@@ -23,8 +23,7 @@ def analyze_uid_lengths(members: Collection[Member]) -> Counter[int]:
 
 
 def analyze_levels(members: Collection[Member]) -> Counter[int]:
-    return Counter(member["level_info"]["current_level"] + member["is_senior_member"]
-                   for member in members)
+    return Counter(member["level_info"]["current_level"] + member["is_senior_member"] for member in members)
 
 
 def analyze_vips(members: Collection[Member]):
@@ -96,13 +95,13 @@ def analyze_locations(replies: Collection[Reply]) -> Counter[str]:
             continue
         location: str = reply["reply_control"]["location"]
         if location.startswith(prefix):
-            locations[location[len(prefix):]] += 1
+            locations[location[len(prefix) :]] += 1
     return locations
 
 
 def save_results(results: Analysis, filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
-    with open(filepath, 'w', encoding="utf-8") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=4)
 
 

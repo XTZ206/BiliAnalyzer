@@ -24,7 +24,6 @@ def flatten_replies(page: Page) -> list[Reply]:
     if page.get("replies") is None:
         return page_replies
 
-
     reply: Reply
 
     for reply in page.get("replies", []):
@@ -89,37 +88,37 @@ async def fetch_video_info(bvid: str, credential: Optional[Credential] = None) -
 def load_replies(filepath: FilePath) -> list[Reply]:
     if not os.path.exists(filepath):
         return []
-    with open(filepath, 'r', encoding="utf-8") as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def load_members(filepath: FilePath) -> list[Member]:
     if not os.path.exists(filepath):
         return []
-    with open(filepath, 'r', encoding="utf-8") as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def load_video_info(filepath: FilePath) -> list[VideoInfo]:
     if not os.path.exists(filepath):
         return []
-    with open(filepath, 'r', encoding="utf-8") as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_replies(replies: Collection[Reply], filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
-    with open(filepath, 'w', encoding="utf-8") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         json.dump(list(replies), f, ensure_ascii=False, indent=4)
 
 
 def save_members(members: Collection[Member], filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
-    with open(filepath, 'w', encoding="utf-8") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         json.dump(list(members), f, ensure_ascii=False, indent=4)
 
 
 def save_video_info(video_info: Collection[VideoInfo], filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
-    with open(filepath, 'w', encoding="utf-8") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         json.dump(list(video_info), f, ensure_ascii=False, indent=4)
