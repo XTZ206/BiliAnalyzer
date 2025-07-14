@@ -8,7 +8,7 @@ from bilibili_api import Credential, bvid2aid
 from bilibili_api.video import Video
 from bilibili_api.comment import CommentResourceType, get_comments
 
-from utils import *
+from ..utils import *
 
 COMMENTS_PER_PAGE = 20
 
@@ -21,7 +21,12 @@ async def fetch_page_replies(bvid: str, index: int, credential: Optional[Credent
 def flatten_replies(page: Page) -> list[Reply]:
     page_replies: list[Reply] = []
 
+    if page.get("replies") is None:
+        return page_replies
+
+
     reply: Reply
+
     for reply in page.get("replies", []):
         page_replies.append(reply)
         for reply in reply.get("replies", []):
