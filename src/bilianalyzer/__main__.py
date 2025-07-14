@@ -2,15 +2,13 @@ import argparse
 import json
 
 from . import auth
-from .fetch.comments import *
+from .fetch.fetcher import *
 from .analyze.comments import *
 from .utils import *
 
 
 async def main() -> None:
-    parser = argparse.ArgumentParser(
-        prog="bilianalyzer", usage="%(prog)s [command]", description="Fetch and Analyze Bilibili Comments"
-    )
+    parser = argparse.ArgumentParser(prog="bilianalyzer", usage="%(prog)s [command]", description="Fetch and Analyze Bilibili Comments")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Authentication commands
@@ -23,30 +21,14 @@ async def main() -> None:
     # Fetch Commands
     fetch_parser = subparsers.add_parser("fetch", help="Fetch comments for a video with given BVID")
     fetch_parser.add_argument("bvid", type=str, help="BVID of the video")
-    fetch_parser.add_argument(
-        "-n", "--limit", type=int, default=10, help="Limit the maximum number of pages to fetch (default: 10)"
-    )
-    fetch_parser.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        default="comments.json",
-        help="Output filepath for comments (default: comments.json)",
-    )
-    fetch_parser.add_argument(
-        "--no-auth", action="store_true", help="Skip authentication and fetch comments without credentials"
-    )
+    fetch_parser.add_argument("-n", "--limit", type=int, default=10, help="Limit the maximum number of pages to fetch (default: 10)")
+    fetch_parser.add_argument("-o", "--output", type=str, default="comments.json", help="Output filepath for comments (default: comments.json)")
+    fetch_parser.add_argument("--no-auth", action="store_true", help="Skip authentication and fetch comments without credentials")
 
     # Analyze Commands
     analyze_parser = subparsers.add_parser("analyze", help="Analyze comments from a file")
     analyze_parser.add_argument("input", type=str, help="Input file with comments")
-    analyze_parser.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        default="analysis_results.json",
-        help="Output filepath for analysis results (default: analysis_results.json)",
-    )
+    analyze_parser.add_argument("-o", "--output", type=str, default="analysis_results.json", help="Output filepath for analysis results (default: analysis_results.json)")
 
     args = parser.parse_args()
 
@@ -78,15 +60,18 @@ async def main() -> None:
                 except ValueError as error:
                     print(f"Authentication Failed: {error}")
                     return
-            replies = await fetch_replies(args.bvid, limit=args.limit, credential=credential)
-            video_info = await fetch_video_info(args.bvid, credential=credential)
+            fetcher = Fetcher(credential)
+            replies = await fetcher.fetch_replies(args.bvid, limit=args.limit)
+            video_info = await fetcher.fetch_video_info(args.bvid)
+            members = fetcher.fetch_members(replies)
             save_replies(replies, filepath=args.output)
             save_video_info(video_info, filepath="video_info.json")
+            save_members(members,"memvers.json")
             # TODO: replace hardcoded video_info filepath
 
         case "analyze":
             replies = load_replies(filepath=args.input)
-            members = fetch_members(replies)
+            members = load_members("members.json")
 
             uid_lengths: Counter[int] = analyze_uid_lengths(members)
             levels: Counter[int] = analyze_levels(members)
@@ -177,10 +162,10 @@ async def main() -> None:
                 "粉丝团信息": {
                     "粉丝团名称": fan_name,
                     "粉丝团等级分布": dict(fan_levels),
-                    "粉丝团成员总数": sum(fan_levels.values()),
+                    "粉丝团成员总数": sum(fan_levels.values())
                 },
                 "评论IP属地分布": dict(locations),
-                "评论发布时间分布": dict(comment_time_distribution),
+                "评论发布时间分布": dict(comment_time_distribution)
             }
             save_results(analysis, args.output)
             print(f"分析结果已保存到 {args.output}")
