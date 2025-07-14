@@ -10,4 +10,4 @@ dependencies = [
 ]
 
 [tool.black]
-max_line_length = 120
+line-length = 120
