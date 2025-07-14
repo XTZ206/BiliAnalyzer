@@ -3,7 +3,8 @@ import math
 import json
 import os
 import random
-from typing import Coroutine
+import typing
+from collections.abc import Collection, Coroutine
 from bilibili_api import Credential, bvid2aid
 from bilibili_api.video import Video
 from bilibili_api.comment import CommentResourceType, get_comments
@@ -13,8 +14,8 @@ from ..utils import *
 COMMENTS_PER_PAGE = 20
 
 
-async def fetch_page_replies(bvid: str, index: int, credential: Optional[Credential] = None) -> list[Reply]:
-    page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, index, credential=credential)
+async def fetch_page_replies(bvid: str, index: int, credential: Credential | None = None) -> list[Reply]:
+    page: Page = typing.cast(Page, await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, index, credential=credential))
     return flatten_replies(page)
 
 
@@ -24,17 +25,17 @@ def flatten_replies(page: Page) -> list[Reply]:
     if page.get("replies") is None:
         return page_replies
 
-    reply: Reply
-
-    for reply in page.get("replies", []):
+    root_replies: list[Reply] = page.get("replies", []) or []
+    for reply in root_replies:
         page_replies.append(reply)
-        for reply in reply.get("replies", []):
-            page_replies.append(reply)
+        sub_replies: list[Reply] = reply.get("replies", []) or []
+        for sub_reply in sub_replies:
+            page_replies.append(sub_reply)
     return page_replies
 
 
-async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credential] = None) -> list[Reply]:
-    page: Page = await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=credential)
+async def fetch_replies(bvid: str, limit: int = 20, credential: Credential | None = None) -> list[Reply]:
+    page: Page = typing.cast(Page, await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=credential))
     reply_count: int = page.get("page", {}).get("count", 0)
     all_replies: list[Reply] = []
     page_count: int = math.ceil(reply_count / COMMENTS_PER_PAGE)
@@ -59,30 +60,9 @@ async def fetch_replies(bvid: str, limit: int = 20, credential: Optional[Credent
     return all_replies
 
 
-def fetch_members(replies: Collection[Reply]) -> list[Member]:
-    members: list[Member] = []
-    uids: dict[int, Member] = {}
-    for reply in replies:
-        member = reply.get("member", {})
-        uid: int = member.get("mid")
-        if uid is None:
-            continue
-        if uid not in uids:
-            uids[uid] = member
-            members.append(member)
-        else:
-            # Update existing member with new information
-            existing_member = uids[uid]
-            for key, value in member.items():
-                if key not in existing_member or not existing_member[key]:
-                    existing_member[key] = value
-            uids[uid] = existing_member
-    return members
-
-
-async def fetch_video_info(bvid: str, credential: Optional[Credential] = None) -> list[VideoInfo]:
-    video_info: VideoInfo = await Video(bvid, credential=credential).get_info()
-    return [video_info]
+async def fetch_video_info(bvid: str, credential: Credential | None = None) -> VideoInfo:
+    video_info: VideoInfo = typing.cast(VideoInfo, await Video(bvid, credential=credential).get_info())
+    return video_info
 
 
 def load_replies(filepath: FilePath) -> list[Reply]:
@@ -99,9 +79,9 @@ def load_members(filepath: FilePath) -> list[Member]:
         return json.load(f)
 
 
-def load_video_info(filepath: FilePath) -> list[VideoInfo]:
+def load_video_info(filepath: FilePath) -> VideoInfo:
     if not os.path.exists(filepath):
-        return []
+        return {"pubdate": 0} # TODO: replace this with a proper default
     with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -118,7 +98,7 @@ def save_members(members: Collection[Member], filepath: FilePath) -> None:
         json.dump(list(members), f, ensure_ascii=False, indent=4)
 
 
-def save_video_info(video_info: Collection[VideoInfo], filepath: FilePath) -> None:
+def save_video_info(video_info: VideoInfo, filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
     with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(list(video_info), f, ensure_ascii=False, indent=4)
+        json.dump(video_info, f, ensure_ascii=False, indent=4)
