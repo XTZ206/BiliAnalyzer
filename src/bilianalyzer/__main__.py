@@ -66,7 +66,7 @@ async def main() -> None:
             members = fetcher.fetch_members(replies)
             save_replies(replies, filepath=args.output)
             save_video_info(video_info, filepath="video_info.json")
-            save_members(members,"memvers.json")
+            save_members(members,"members.json")
             # TODO: replace hardcoded video_info filepath
 
         case "analyze":
