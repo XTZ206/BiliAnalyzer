@@ -7,8 +7,7 @@ A Python-Implemented Command Line Bilibili Comment Fetch and Analysis Tool
 ``` shell
 git clone https://github.com/XTZ206/BiliAnalyzer.git
 cd BiliAnalyzer
-pip install bilibili-api-python
-pip install httpx
+uv sync
 ```
 
 ## Usage
@@ -16,7 +15,7 @@ pip install httpx
 ### Login With Cookies
 
 ``` shell
-python src/main.py auth login
+uv run -m bilianalyzer auth login
 # Follow the instructions to login with cookies
 # You can get the cookies from your browser
 ```
@@ -24,14 +23,14 @@ python src/main.py auth login
 ### Check Login Status
 
 ``` shell
-python src/main.py auth status
+uv run -m bilianalyzer auth status
 # Check if you are logged in
 ```
 
 ### Fetch Comments
 
 ``` shell
-python src/main.py fetch <bvid> [-o <path/to/comments.json>]
+uv run -m bilianalyzer fetch <bvid> [-o <path/to/comments.json>]
 # make sure you have logged in first
 # otherwise the file will be empty
 # <bvid> is the Bilibili video ID, e.g. BV1xxxx
@@ -40,5 +39,5 @@ python src/main.py fetch <bvid> [-o <path/to/comments.json>]
 ### Analyze Comments
 
 ``` shell
-python src/main.py analyze <path/to/comments.json> [-o <path/to/analysis_results.json>]
+uv run -m bilianalyzer analyze <path/to/comments.json> [-o <path/to/analysis_results.json>]
 ```
