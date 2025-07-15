@@ -4,11 +4,13 @@ version = "0.1.0"
 description = "A Python-Implemented Command Line Bilibili Comment Fetch and Analysis Tool"
 readme = "README.md"
 authors = [
-    { name = "xtz206", email = "ywx2006@outlook.com" }
+    { name = "xtz206", email = "ywx2006@outlook.com" },
+    { name = "Anzfans", email ="zhangsuo210622@gmail.com" },
 ]
 requires-python = ">=3.12"
 dependencies = [
     "bilibili-api-python>=17.3.0",
+    "click>=8.2.1",
     "httpx>=0.28.1",
 ]
 

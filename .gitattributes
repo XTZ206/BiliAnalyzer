@@ -1,0 +1,4 @@
+# .gitattributes
+* text=auto       
+*.toml text eol=lf  
+*.lock text eol=lf 

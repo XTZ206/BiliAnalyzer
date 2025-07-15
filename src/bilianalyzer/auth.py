@@ -75,6 +75,6 @@ def save_credential(credential: Credential) -> None:
         json.dump(cookies, f)
 
 
-def logout() -> None:
+def logout_operation() -> None:
     if os.path.exists("credential.json"):
         os.remove("credential.json")
