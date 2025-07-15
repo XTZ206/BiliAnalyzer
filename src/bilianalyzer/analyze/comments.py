@@ -144,7 +144,7 @@ class CommentAnalyzer(MemberAnalyzer, ReplyAnalyzer):
             72.0,
         ]
         INTERVAL_NAMES: list[str] = [
-            "超时空评论"  # NOTE: just kidding
+            "超时空评论",  # NOTE: just kidding
             "半小时内",
             "0.5-1小时内",
             "1-2小时内",
