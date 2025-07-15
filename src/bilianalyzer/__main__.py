@@ -1,8 +1,11 @@
 import argparse
+import asyncio
 import json
 
+from bilibili_api import Credential
+
 from . import auth
-from .fetch.fetcher import *
+from .fetch.comments import Fetcher, save_replies, load_replies, save_video_info, load_video_info
 from .analyze.comments import CommentAnalyzer, save_analysis
 from .utils import *
 
@@ -63,7 +66,6 @@ async def main() -> None:
             fetcher = Fetcher(credential)
             replies = await fetcher.fetch_replies(args.bvid, limit=args.limit)
             video_info = await fetcher.fetch_video_info(args.bvid)
-            members = fetcher.fetch_members(replies)
             save_replies(replies, filepath=args.output)
 
             # TODO: replace hardcoded video_info filepath
