@@ -3,7 +3,7 @@ import asyncio
 import json
 
 from bilibili_api import Credential
-from .commands import auth_commands
+from .commands import auth_commands, fetch_commands
 from .fetch.comments import (
     Fetcher,
     save_replies,
@@ -19,6 +19,7 @@ def main():
     """BiliAnalyzer: Fetch and Analyze Bilibili Comments"""
     
 main.add_command(auth_commands.auth)
+main.add_command(fetch_commands.fetch)
 
 if __name__ == "__main__":
     main()
