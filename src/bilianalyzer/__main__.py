@@ -3,7 +3,7 @@ import asyncio
 import json
 
 from bilibili_api import Credential
-from .commands import auth_commands, fetch_commands
+from .commands import auth_commands, fetch_commands, analyze_commands
 from .fetch.comments import (
     Fetcher,
     save_replies,
@@ -20,6 +20,7 @@ def main():
     
 main.add_command(auth_commands.auth)
 main.add_command(fetch_commands.fetch)
+main.add_command(analyze_commands.analyze)
 
 if __name__ == "__main__":
     main()
