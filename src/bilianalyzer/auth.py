@@ -37,14 +37,17 @@ def login_from_file(filepath: FilePath) -> Credential:
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Credential File {filepath} Not Found")
 
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         cookies = json.load(f)
     if "sessdata" not in cookies:
         raise ValueError("Credential File Invalid: Missing 'sessdata' Cookie")
     if "bili_jct" not in cookies:
         raise ValueError("Credential File Invalid: Missing 'bili_jct' Cookie")
 
-    cookies: Cookies = {"sessdata": cookies["sessdata"], "bili_jct": cookies["bili_jct"]}
+    cookies: Cookies = {
+        "sessdata": cookies["sessdata"],
+        "bili_jct": cookies["bili_jct"],
+    }
     return login_from_cookies(**cookies)
 
 
@@ -52,23 +55,23 @@ def load_credential() -> Credential:
     if not os.path.exists("credential.json"):
         return Credential()
 
-    with open("credential.json", 'r') as f:
+    with open("credential.json", "r") as f:
         cookies = json.load(f)
     if "sessdata" not in cookies:
         raise ValueError("Credential File Invalid: Missing 'sessdata' Cookie")
     if "bili_jct" not in cookies:
         raise ValueError("Credential File Invalid: Missing 'bili_jct' Cookie")
 
-    cookies: Cookies = {"sessdata": cookies["sessdata"], "bili_jct": cookies["bili_jct"]}
+    cookies: Cookies = {
+        "sessdata": cookies["sessdata"],
+        "bili_jct": cookies["bili_jct"],
+    }
     return login_from_cookies(**cookies)
 
 
 def save_credential(credential: Credential) -> None:
-    cookies = {
-        "sessdata": credential.sessdata,
-        "bili_jct": credential.bili_jct
-    }
-    with open("credential.json", 'w') as f:
+    cookies = {"sessdata": credential.sessdata, "bili_jct": credential.bili_jct}
+    with open("credential.json", "w") as f:
         json.dump(cookies, f)
 
 
