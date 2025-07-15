@@ -5,6 +5,7 @@ import os
 import random
 import typing
 from collections.abc import Collection, Coroutine
+
 from bilibili_api import Credential, bvid2aid
 from bilibili_api.video import Video
 from bilibili_api.comment import CommentResourceType, get_comments
