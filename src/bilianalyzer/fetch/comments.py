@@ -13,14 +13,23 @@ from ..utils import *
 
 COMMENTS_PER_PAGE = 20
 
+
 class Fetcher:
-    def __init__(self, credential: Credential | None = None):
-        self.credential = credential
+    def __init__(self, bvid: str, credential: Credential | None = None):
+        self.bvid: str = bvid
+        self.credential: Credential | None = credential
 
-    async def fetch_page_replies(self, bvid: str, index: int) -> list[Reply]:
-        page: Page = typing.cast(Page, await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, index, credential=self.credential))
+    async def fetch_page_replies(self, index: int) -> list[Reply]:
+        page: Page = typing.cast(
+            Page,
+            await get_comments(
+                bvid2aid(self.bvid),
+                CommentResourceType.VIDEO,
+                index,
+                credential=self.credential,
+            ),
+        )
         return self.flatten_replies(page)
-
 
     def flatten_replies(self, page: Page) -> list[Reply]:
         page_replies: list[Reply] = []
@@ -36,13 +45,23 @@ class Fetcher:
                 page_replies.append(sub_reply)
         return page_replies
 
-
-    async def fetch_replies(self, bvid: str, limit: int = 20) -> list[Reply]:
-        page: Page = typing.cast(Page, await get_comments(bvid2aid(bvid), CommentResourceType.VIDEO, credential=self.credential))
+    async def fetch_replies(self, limit: int = 20) -> list[Reply]:
+        page: Page = typing.cast(
+            Page,
+            await get_comments(
+                bvid2aid(self.bvid),
+                CommentResourceType.VIDEO,
+                credential=self.credential,
+            ),
+        )
         reply_count: int = page.get("page", {}).get("count", 0)
         all_replies: list[Reply] = []
         page_count: int = math.ceil(reply_count / COMMENTS_PER_PAGE)
-        page_index_range: Collection[int] = range(2, page_count + 1) if limit == 0 else range(2, min(page_count, limit) + 1)
+        page_index_range: Collection[int] = (
+            range(2, page_count + 1)
+            if limit == 0
+            else range(2, min(page_count, limit) + 1)
+        )
         # TODO: early termination if empty page is fetched
 
         all_replies.extend(self.flatten_replies(page))
@@ -52,7 +71,7 @@ class Fetcher:
         async def bounded_fetch(page_index: int) -> list[Reply]:
             async with semaphore:
                 await asyncio.sleep(0.5 + random.random())
-                return await self.fetch_page_replies(bvid, page_index)
+                return await self.fetch_page_replies(page_index)
 
         tasks: list[Coroutine] = [bounded_fetch(index) for index in page_index_range]
 
@@ -62,9 +81,10 @@ class Fetcher:
             all_replies.extend(page_replies)
         return all_replies
 
-
-    async def fetch_video_info(self, bvid: str) -> VideoInfo:
-        video_info: VideoInfo = typing.cast(VideoInfo, await Video(bvid, credential=self.credential).get_info())
+    async def fetch_video_info(self) -> VideoInfo:
+        video_info: VideoInfo = typing.cast(
+            VideoInfo, await Video(self.bvid, credential=self.credential).get_info()
+        )
         return video_info
 
 
@@ -75,10 +95,10 @@ def load_replies(filepath: FilePath) -> list[Reply]:
         return json.load(f)
 
 
-
 def load_video_info(filepath: FilePath) -> VideoInfo:
     if not os.path.exists(filepath):
-        return {"pubdate": 0} # TODO: replace this with a proper default
+        # TODO: replace this with a proper default
+        return {"pubdate": 0}
     with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -87,7 +107,6 @@ def save_replies(replies: Collection[Reply], filepath: FilePath) -> None:
     os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(list(replies), f, ensure_ascii=False, indent=4)
-
 
 
 def save_video_info(video_info: VideoInfo, filepath: FilePath) -> None:
