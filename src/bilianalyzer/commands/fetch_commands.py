@@ -25,11 +25,7 @@ from ..fetch.comments import Fetcher, save_replies, save_video_info
     is_flag=True,
     help="Skip authentication and fetch comments without credentials",
 )
-@click.command(
-    help="Fetch comments for a video with given BVID\n\n"
-    "POSITIONAL ARGUMENTS:\n\n"
-    "BVID: Bilibili video identifier (e.g. BV1xx411c7mz)"
-)
+@click.command(help="Fetch comments for a video with given BVID")
 def fetch(bvid, limit, output, no_auth):
     """Fetch comments for a video with given BVID"""
 
