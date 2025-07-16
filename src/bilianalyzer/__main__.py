@@ -14,10 +14,12 @@ from .fetch.comments import (
 from .analyze.comments import CommentAnalyzer, save_analysis
 from .utils import *
 
+
 @click.group()
 def main():
     """BiliAnalyzer: Fetch and Analyze Bilibili Comments"""
-    
+
+
 main.add_command(auth_commands.auth)
 main.add_command(fetch_commands.fetch)
 main.add_command(analyze_commands.analyze)
