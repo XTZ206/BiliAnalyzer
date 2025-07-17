@@ -130,6 +130,7 @@ class CommentAnalyzer(MemberAnalyzer, ReplyAnalyzer):
 
     @staticmethod
     def _calc_interval_name(start_time: int, end_time: int) -> str:
+
         interval_hours: float = (end_time - start_time) / 3600.0
         INTERVAL_POINTS: list[float] = [
             0.0,
@@ -162,6 +163,7 @@ class CommentAnalyzer(MemberAnalyzer, ReplyAnalyzer):
         return INTERVAL_NAMES[-1]
 
     def analyze_comment_intervals(self) -> Counter[str]:
+
         publish_time: int = self.video_info.get("pubdate", 0)
         comment_intervals: Counter[str] = Counter()
 

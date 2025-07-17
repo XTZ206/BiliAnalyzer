@@ -13,13 +13,9 @@ import asyncio
     default="analysis_results.json",
     help="Output filepath for analysis results (default: analysis_results.json)",
 )
-@click.command(
-    help="Analyze comments from a file\n\n"
-    "POSITIONAL ARGUMENTS:\n\n"
-    "INPUT: Input file with comments to analyze"
-)
+@click.command(help="Analyze comments from file INPUT")
 def analyze(input, output):
-    """Analyze comments from a file"""
+    """Analyze comments from a file INPUT"""
 
     async def async_analyze():
         video_info = load_video_info(filepath="video_info.json")

@@ -1,5 +1,5 @@
 import click
-from ..auth import check, login_from_cookies, logout_operation
+from ..auth import check, login_from_cookies, remove_credential
 
 
 @click.group()
@@ -29,5 +29,5 @@ def login():
 @auth.command()
 def logout():
     """Logout BiliAnalyzer and Remove Stored Cookies"""
-    logout_operation()
+    remove_credential()
     click.echo("BiliAnalyzer Logged Out Successfully")
